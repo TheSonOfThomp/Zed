@@ -1,0 +1,15 @@
+.zed-shadow {
+  border-radius: inherit;
+  position: absolute;
+  width:100%; height: 100%;
+  top: 0; bottom: 0; left: 0; right: 0;
+  transition: cubic-bezier(0.075, 0.82, 0.165, 1) box-shadow 500ms;
+}
+
+.base-shadow{
+  // background: orange;
+}
+.overlapping-shadow{
+  // background: cyan;
+  // background: rgba(0,0,0,0.05)
+}

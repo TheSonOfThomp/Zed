@@ -1,0 +1,45 @@
+body {
+  background-color: rgba(243, 246, 253, 1);
+  position: relative;
+  /* margin: 128px; */
+  font-family: --apple-system, Roboto, sans-serif;
+  color: #333333;
+}
+
+button {
+  cursor: pointer;
+  padding: 4px;
+  margin: 12px;
+}
+
+.card {
+  height: 250px;
+  width: 250px;
+  background-color: white;
+  border-radius: 16px;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+}
+.small-card {
+  position: absolute;
+  height: 50px;
+  width: 50px;
+  background-color: white;
+  border-radius: 8px;
+}
+
+#card-1{
+  top: 76px;
+  left: 0px;
+}
+#card-2 {
+  top: 150px;
+  left: 150px;
+}
+#card-3 {
+  top: 10px;
+  left: 256px;
+}

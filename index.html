@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <title>Zed</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+  <link rel='stylesheet' type='text/css' media='screen' href='zed.css'>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src='zed.js'></script>
+</head>
+<body>
+  <div id="shadowcontainer">
+    <!-- <button :click.native="refresh()">Refresh</button> -->
+    <div 
+      :zed="card1.z" 
+      id="card-1" 
+      class="card"
+      @mousedown="mousedownCard(1)"
+      @mouseup="mouseupCard(1)"
+    >Card 1 (z={{card1.z}})</div>
+    
+    <div 
+      :zed="card2.z" 
+      id="card-2" 
+      class="card" 
+      @mousedown="mousedownCard(2)"
+      @mouseup="mouseupCard(2)"
+    >Card 2 (z={{card2.z}})</div>
+    
+    <div 
+      :zed="card3.z"  
+      id="card-3" 
+      class="card" 
+      @mousedown="mousedownCard(3)"
+      @mouseup="mouseupCard(3)"
+    >Card 3 (z={{card3.z}})</div>
+  </div>
+  <script src='main.js'></script>
+</body>
+</html>
