@@ -79,25 +79,31 @@ class Zed {
         this.replaceStyle(baseShadowElem, 'clip-path', `${this.getAllBaseClipPath(intersections, elem)}`)
 
         let existingIxnElems = Array.prototype.slice.call(elem.querySelectorAll('.overlapping-shadow'));
-        existingIxnElems.forEach(elem => {this.setStyle(elem, '')});
+        // existingIxnElems.forEach(elem => { this.setStyle(elem, '') });
         let countExistingIxns = existingIxnElems.length || 0
 
-        // Add appropriate intersection shadows
-        intersections.forEach((ixn, k) => {
+        // intersections = intersections.filter(ixn => !!ixn) // filter out the undefined intersections
+
+        for (let ixnIndex = 0; ixnIndex < Math.max(countExistingIxns, intersections.length); ixnIndex++) {
+          const ixn = intersections[ixnIndex] || null
+          const ixnShadowElem = existingIxnElems[ixnIndex] || document.createElement('div');
+
           if (!!ixn){
-            // Create or query new intersection shadows
-            let ixnShadowElem = existingIxnElems[k] || document.createElement('div');
+            const ixnZ = zDiffs[ixnIndex]
             ixnShadowElem.classList.add('zed-shadow','overlapping-shadow')
-            let ixnZ = zDiffs[k]
             this.setStyle(ixnShadowElem, `
               box-shadow: ${this.getCSSShadowValue(ixnZ)};
               clip-path: ${this.getClipPath(ixn, elem)};
             `)
-            if (k >= countExistingIxns){
-              elem.appendChild(ixnShadowElem);
+            if (!existingIxnElems[ixnIndex]){
+              elem.appendChild(ixnShadowElem); // the element does not exist. Create it
+            }
+          } else {
+            if(!!existingIxnElems[ixnIndex]){ // there are more existing elements than shadows
+              ixnShadowElem.parentNode.removeChild(ixnShadowElem)
             }
           }
-        }) // end intersection loop
+        } // end intersection loop
       } // end intersections if
     }) // end element loop
   }
@@ -184,7 +190,7 @@ class Zed {
   }
 
   getCSSShadowValue(z) {
-    z = z == 0 ? 0.5 : z
+    z = z <= 0 ? 0.5 : z
     let elevation = this.ELEVATION_INCREMENT * z
     let blur = 1.2 * elevation;
     let spread = -0.5 * elevation;

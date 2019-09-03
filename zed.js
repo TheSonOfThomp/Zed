@@ -56,22 +56,27 @@ var Zed = /** @class */ (function () {
             // Start adding the intersection shadows
             if (intersections.length > 0) {
                 _this.replaceStyle(baseShadowElem, 'clip-path', "" + _this.getAllBaseClipPath(intersections, elem));
-                var existingIxnElems_1 = Array.prototype.slice.call(elem.querySelectorAll('.overlapping-shadow'));
-                existingIxnElems_1.forEach(function (elem) { _this.setStyle(elem, ''); });
-                var countExistingIxns_1 = existingIxnElems_1.length || 0;
-                // Add appropriate intersection shadows
-                intersections.forEach(function (ixn, k) {
+                var existingIxnElems = Array.prototype.slice.call(elem.querySelectorAll('.overlapping-shadow'));
+                // existingIxnElems.forEach(elem => { this.setStyle(elem, '') });
+                var countExistingIxns = existingIxnElems.length || 0;
+                // intersections = intersections.filter(ixn => !!ixn) // filter out the undefined intersections
+                for (var ixnIndex = 0; ixnIndex < Math.max(countExistingIxns, intersections.length); ixnIndex++) {
+                    var ixn = intersections[ixnIndex] || null;
+                    var ixnShadowElem = existingIxnElems[ixnIndex] || document.createElement('div');
                     if (!!ixn) {
-                        // Create or query new intersection shadows
-                        var ixnShadowElem = existingIxnElems_1[k] || document.createElement('div');
+                        var ixnZ = zDiffs[ixnIndex];
                         ixnShadowElem.classList.add('zed-shadow', 'overlapping-shadow');
-                        var ixnZ = zDiffs[k];
                         _this.setStyle(ixnShadowElem, "\n              box-shadow: " + _this.getCSSShadowValue(ixnZ) + ";\n              clip-path: " + _this.getClipPath(ixn, elem) + ";\n            ");
-                        if (k >= countExistingIxns_1) {
-                            elem.appendChild(ixnShadowElem);
+                        if (!existingIxnElems[ixnIndex]) {
+                            elem.appendChild(ixnShadowElem); // the element does not exist. Create it
                         }
                     }
-                }); // end intersection loop
+                    else {
+                        if (!!existingIxnElems[ixnIndex]) { // there are more existing elements than shadows
+                            ixnShadowElem.parentNode.removeChild(ixnShadowElem);
+                        }
+                    }
+                } // end intersection loop
             } // end intersections if
         }); // end element loop
     };
@@ -145,7 +150,7 @@ var Zed = /** @class */ (function () {
         }
     };
     Zed.prototype.getCSSShadowValue = function (z) {
-        z = z == 0 ? 0.5 : z;
+        z = z <= 0 ? 0.5 : z;
         var elevation = this.ELEVATION_INCREMENT * z;
         var blur = 1.2 * elevation;
         var spread = -0.5 * elevation;
