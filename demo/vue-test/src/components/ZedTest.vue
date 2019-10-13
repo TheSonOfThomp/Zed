@@ -1,6 +1,5 @@
 <template>
   <div id="shadow-container">
-    <!-- <button :click.native="refresh()">Refresh</button> -->
     <div 
       :zed="card1.z" 
       id="card-1" 
@@ -71,22 +70,22 @@ export default {
     },
     mousedownCard(x){
       if(x === 1){
-        this.card1.z = this.card1.z - 2
+        this.card1.z = this.card1.z - 1
       } else if (x === 2) {
-        this.card2.z = this.card2.z - 2
+        this.card2.z = this.card2.z - 1
       } else if(x === 3) {
-        this.card3.z = this.card3.z - 2
+        this.card3.z = this.card3.z - 1
       }
     },
     mouseupCard(x){
       // eslint-disable-next-line
       console.log(`clickCard ${x}`)
       if(x === 1){
-        this.card1.z = this.card1.z + 2
+        this.card1.z = this.card1.z + 1
       } else if (x === 2) {
-        this.card2.z = this.card2.z + 2
+        this.card2.z = this.card2.z + 1
       } else if(x === 3) {
-        this.card3.z = this.card3.z + 2
+        this.card3.z = this.card3.z + 1
       }
     }
   }
@@ -107,30 +106,23 @@ button {
   width: 250px;
   background-color: white;
   border-radius: 16px;
-  position: absolute;
-  display: flex;
+  position: relative;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
   cursor: grab;
 }
-.small-card {
-  position: absolute;
-  height: 50px;
-  width: 50px;
-  background-color: white;
-  border-radius: 8px;
-}
 
 #card-1{
-  top: 76px;
+  top: 50px;
   left: 0px;
 }
 #card-2 {
   top: 150px;
-  left: 150px;
+  left: -75px;
 }
 #card-3 {
-  top: 10px;
-  left: 256px;
+  top: 0px;
+  left: -150px;
 }
 </style>
