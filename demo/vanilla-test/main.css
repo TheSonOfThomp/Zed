@@ -6,10 +6,9 @@ body {
   color: #333333;
 }
 
-button {
-  cursor: pointer;
-  padding: 4px;
-  margin: 12px;
+#shadow-container{
+  position: relative;
+  margin: 32px;
 }
 
 .card {
@@ -17,29 +16,22 @@ button {
   width: 250px;
   background-color: white;
   border-radius: 16px;
-  position: absolute;
-  display: flex;
+  position: relative;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
   cursor: grab;
 }
-.small-card {
-  position: absolute;
-  height: 50px;
-  width: 50px;
-  background-color: white;
-  border-radius: 8px;
-}
 
 #card-1{
-  top: 76px;
-  left: 0px;
+  top: 75px;
+  left: 75px;
 }
 #card-2 {
-  top: 150px;
-  left: 150px;
+  top: 200px;
+  left: 0px;
 }
 #card-3 {
-  top: 10px;
-  left: 256px;
+  top: 25px;
+  left: -100px;
 }

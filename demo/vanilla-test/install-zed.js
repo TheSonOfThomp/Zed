@@ -1,3 +1,7 @@
+/*
+ * run `node install-zed.js` to update the Zed source files
+ */
+
 const fs = require('fs');
 
 const src_dir = '../../src/zed/'
