@@ -33,7 +33,7 @@ Add the `zed` attribute to the DOM elements you want to elevate
 
 Include Zed styles in your main/global css file
 ```css
-  @import url('../path/to/node_modules/zed-shadow/zed/zed.css'); 
+  @import url('../path/to/node_modules/zed-shadow/lib/zed.css'); 
 ```
 
 ### Modifying the default shadow distance

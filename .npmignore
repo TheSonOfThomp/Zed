@@ -1,0 +1,7 @@
+demo/**
+src/**
+
+src/zed/zed.ts
+src/zed/zed.scss
+
+**/*.tgz

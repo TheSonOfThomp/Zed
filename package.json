@@ -1,11 +1,14 @@
 {
   "name": "zed-shadow",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Zed - The true elevation library",
-  "main": "zed/zed.js",
+  "main": "lib/zed.js",
   "scripts": {
-    "build": "tsc && sass zed/zed.scss zed/zed.css",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run build:ts && npm run build:sass",
+    "build:ts": "tsc src/zed.ts --outFile lib/zed.js",
+    "build:sass": "sass src/zed.scss lib/zed.css",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "publish": "cp ../README.md README.md && npm publish"
   },
   "repository": {
     "type": "git",

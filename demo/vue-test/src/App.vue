@@ -18,7 +18,7 @@ export default {
 
 <style>
 
-@import url('../node_modules/zed-shadow/zed/zed.css');
+@import url('../node_modules/zed-shadow/lib/zed.css');
 
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
