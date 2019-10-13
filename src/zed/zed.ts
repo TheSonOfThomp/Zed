@@ -1,10 +1,12 @@
 // Known issues
-// - Does not deal well with multiple layers of overlap
+// - Does not deal well with more than 2 layers of overlap
 // -- Need to clip all but the highest clip path
-
+//
 // - Need to check whether we need to update or not. Lots of unnecessary updating happening
-
+//
 // - Odd behaviour when the distance between cards is less than the shadow spread (too much/too little shadow)
+//
+// - Should add MutationObservers to watch for [zed] attribute changes
 
 interface IIntersection {
   id: string;

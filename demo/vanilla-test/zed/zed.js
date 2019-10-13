@@ -22,7 +22,7 @@ class Zed {
             let z = this.getZed(elem);
             // set actual z-index css
             this.replaceStyle(elem, 'z-index', z.toString());
-            // Find all the intersections of elevated elements
+            // Find all the intersections of elvated elements
             this.elevatedElements.forEach((otherElem, j) => {
                 let otherZ = this.getZed(otherElem); //otherElem.getAttribute('z-index')
                 let zDiff = z - otherZ;
@@ -87,9 +87,6 @@ class Zed {
     update() {
         this.init(this.elevatedElements);
     }
-    /*
-     * Returns the [zed] attribute of the provided HTML element
-     */
     getZed(elem) {
         const _zed = elem.getAttribute('zed');
         if (!!_zed) {
@@ -99,24 +96,11 @@ class Zed {
             return 0;
         }
     }
-    /*
-     * Sets the [style] attribute of the provided HTML element
-     */
     setStyle(elem, style) {
         elem.setAttribute('style', style);
     }
-    /*
-     * Appends to the [style] attribute of the provided HTML element
-     */
-    appendStyle(elem, style) {
-        const currentStyle = elem.getAttribute('style');
-        const newStyle = [currentStyle, style].join(';\n');
-        elem.setAttribute('style', newStyle);
-    }
-    /*
-     * Replaces a rule in the [style] attribute of the provided HTML element
-     */
     replaceStyle(elem, attribute, value) {
+        // debugger
         const currentStyle = elem.getAttribute('style') + ';';
         const toReplace = `${attribute}:.*?(?=[\n\;]).`;
         const toReplaceRegex = new RegExp(toReplace, 'g');
@@ -128,6 +112,11 @@ class Zed {
         else {
             this.appendStyle(elem, `${attribute}: ${value}`);
         }
+    }
+    appendStyle(elem, style) {
+        const currentStyle = elem.getAttribute('style');
+        const newStyle = [currentStyle, style].join(';\n');
+        elem.setAttribute('style', newStyle);
     }
     // getAllIntersections(elements: Array<Element>):Array<IIntersection> {
     //   const allIxns: Array<IIntersection> = [];
@@ -151,9 +140,7 @@ class Zed {
     //   })
     //   return allIxns;
     // }
-    /*
-     * Returns a DOMRect (relative to the viewport) that is the intersection of the provided 2 HTML elements
-     */
+    // The returned DOMRect is relative to the VIEWPORT
     getIntersectionOf(node1, node2) {
         const elem1 = node1.getBoundingClientRect();
         const elem2 = node2.getBoundingClientRect();
@@ -174,9 +161,6 @@ class Zed {
         }
         return intersection;
     }
-    /*
-     * Returns the CSS shadow rule given a z-position
-     */
     getCSSShadowValue(z) {
         z = z <= 0 ? 0.5 : z;
         let elevation = this.ELEVATION_INCREMENT * z;
@@ -184,9 +168,6 @@ class Zed {
         let spread = -0.5 * elevation;
         return `0px ${elevation}px ${blur}px ${spread}px rgba(0, 0, 0, 0.18);`;
     }
-    /*
-     * Returns the edges shared between the intersection rectangle and the related element
-     */
     getSharedEdges(ixn, baseElem) {
         const baseRect = baseElem.getBoundingClientRect();
         let sharedEdges = [];
@@ -204,22 +185,16 @@ class Zed {
         }
         return sharedEdges;
     }
-    /*
-     * Returns an expanded base element so the shadow doesn't clip
-     */
     getExpandedBase(baseElem) {
         const baseRect = baseElem.getBoundingClientRect();
         const z = this.getZed(baseElem);
         const z_px = this.ELEVATION_INCREMENT * z;
-        // expand the baseRect by 50% in all directions (to accommodate the big shadow)
+        // expand the baseRect by 50% in all directions (to accomodate the big shadow)
         // Original x,y is 0, 0
         const bw = baseRect.width;
         const bh = baseRect.height;
         return new DOMRect(-z_px, -z_px, bw + 3 * z_px, bh + 3 * z_px);
     }
-    /*
-     * Returns an expanded DOMRect intersection so the shadow doesn't clip
-     */
     getExpandedIntersection(ixn, baseElem) {
         const baseRect = baseElem.getBoundingClientRect();
         const sharedEdges = this.getSharedEdges(ixn, baseElem);
@@ -233,26 +208,20 @@ class Zed {
         const ih = ib - iy;
         return new DOMRect(ix, iy, iw, ih);
     }
-    /*
-     * Returns an expanded DOMRect and Element so the shadow doesn't clip
-     */
+    // returns [expandedIxn, expandedBase]. 
+    // expanded rectangles to accommodate for the big shadow
     getExpandedRects(ixn, baseRect) {
         const newBase = this.getExpandedBase(baseRect);
         const newIxn = this.getExpandedIntersection(ixn, baseRect);
         return [newIxn, newBase];
     }
-    /*
-     * Returns the clip-path polygon on an element from the provided DOMRect
-     */
     getClipPath(ixn, baseElem) {
-        // const baseRect = baseElem.getBoundingClientRect()
+        const baseRect = baseElem.getBoundingClientRect();
         const newIxn = this.getExpandedIntersection(ixn, baseElem);
         return `polygon(${this.calcPath(newIxn)})`;
     }
-    /*
-     * Returns all the clip-path polygons on an element from the provided array of DOMRects
-     */
     getAllBaseClipPath(intersections, baseElem) {
+        const baseRect = baseElem.getBoundingClientRect();
         // TODO - Pass Elem into getExpanded*** functions so we know the elevation, 
         // and how far exactly to expand the box
         const newBase = this.getExpandedBase(baseElem);
@@ -272,9 +241,6 @@ class Zed {
             return `polygon(${basePath})`;
         }
     }
-    /*
-     * Returns a clip-path polygon from the provided DOMRect
-     */
     calcPath(rect, clockwise = true) {
         const tl = `${rect.x}px ${rect.y}px`;
         const tr = `${rect.right}px ${rect.y}px`;

@@ -1,5 +1,5 @@
 var app = new Vue({
-  el: '#shadowcontainer',
+  el: '#shadow-container',
   data: {
     message: 'Hello Vue!',
     Z: null,
