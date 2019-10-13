@@ -1,28 +1,25 @@
 <template>
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <ZedTest/>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-import Zed from "zed";
-// eslint-disable-next-line
-console.log(Zed)
-const z = new Zed()
-// eslint-disable-next-line
-console.log(z)
+import ZedTest from './components/ZedTest.vue'
 
 export default {
   name: 'app',
   components: {
-    HelloWorld
+    ZedTest
   }
 }
 </script>
 
 <style>
+
+@import url('../node_modules/zed-shadow/zed/zed.css');
+
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -31,4 +28,13 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
 }
+
+body {
+  background-color: rgba(243, 246, 253, 1);
+  position: relative;
+  /* margin: 128px; */
+  font-family: --apple-system, Roboto, sans-serif;
+  color: #333333;
+}
+
 </style>
