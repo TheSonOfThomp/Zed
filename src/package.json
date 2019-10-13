@@ -1,0 +1,30 @@
+{
+  "name": "zed-shadow",
+  "version": "0.0.1",
+  "description": "Zed - The true elevation library",
+  "main": "zed/zed.js",
+  "scripts": {
+    "build": "tsc && sass zed/zed.scss zed/zed.css",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheSonOfThomp/Zed.git"
+  },
+  "keywords": [
+    "elevation",
+    "shadow",
+    "UI"
+  ],
+  "author": "Adam Thompson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheSonOfThomp/Zed/issues"
+  },
+  "homepage": "https://github.com/TheSonOfThomp/Zed#readme",
+  "devDependencies": {
+    "@types/node": "^12.7.12",
+    "sass": "^1.23.0",
+    "typescript": "^3.6.4"
+  }
+}

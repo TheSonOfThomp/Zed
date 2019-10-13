@@ -15,20 +15,19 @@ interface IIntersection {
 }
 
 class Zed {
-  constructor(rootElement: Element){
-    this.rootElement = rootElement;
-    this.init()
-  }
-  
-  // how many pixels is one z-index level worth?
-  public get ELEVATION_INCREMENT(){
-    return 4
-  }
-
   private rootElement: Element;
   private elevatedElements: Array<Element>;
   private initialized:boolean = false;
-  // private allIntersections: Array<IIntersection>;
+
+  // how many pixels is one z-index level worth?
+  public ELEVATION_INCREMENT:number = 4
+  
+  constructor(rootElement: Element){
+    // default to the document element if none is provided
+    this.rootElement = rootElement || document.documentElement;
+    this.elevatedElements = []
+    this.init()
+  }
   
   init(elevatedElements?:Array<Element>){
     // Get all the elevated elements on the page
@@ -108,19 +107,28 @@ class Zed {
     }) // end element loop
   }
 
-  update(){
+  public setElevationIncrement(newIncrement:number){
+    this.ELEVATION_INCREMENT = newIncrement;
+  }
+
+  protected update(){
     this.init(this.elevatedElements)
   }
 
-  getZed(elem: Element):number {
-    return parseFloat(elem.getAttribute('zed'))
+  protected getZed(elem: Element):number {
+    const _zed = elem.getAttribute('zed')
+    if (!!_zed){
+      return parseFloat(_zed)
+    } else {
+      return 0
+    }
   }
 
-  setStyle(elem: Element, style:string){
+  protected setStyle(elem: Element, style:string){
     elem.setAttribute('style', style)
   }
 
-  replaceStyle(elem: Element, attribute: string, value:string){
+  protected replaceStyle(elem: Element, attribute: string, value:string){
     // debugger
     const currentStyle = elem.getAttribute('style') + ';';
     const toReplace = `${attribute}:.*?(?=[\n\;]).`
@@ -134,7 +142,7 @@ class Zed {
     }
   }
 
-  appendStyle(elem:Element, style:string){
+  protected appendStyle(elem:Element, style:string){
     const currentStyle = elem.getAttribute('style');
     const newStyle = [currentStyle, style].join(';\n')
     elem.setAttribute('style', newStyle);
@@ -166,7 +174,7 @@ class Zed {
 
   // The returned DOMRect is relative to the VIEWPORT
 
-  getIntersectionOf(node1:Element, node2:Element):DOMRect {
+  protected getIntersectionOf(node1:Element, node2:Element):DOMRect {
 
     const elem1 = node1.getBoundingClientRect()
     const elem2 = node2.getBoundingClientRect()
@@ -181,15 +189,19 @@ class Zed {
     let w = rightmostElem.right - leftmostElem.left;
     let h = bottommostElem.bottom - topmostElem.top;
 
+    let intersection: DOMRect = new DOMRect();
+
     if (w > 0 
         && h > 0 
         && w < Math.min(elem1.width, elem2.width) 
-        && h < Math.min(elem1.height, elem2.height)) {
-      return new DOMRect(x,y,w,h)
+        && h < Math.min(elem1.height, elem2.height)) 
+    {
+      intersection = new DOMRect(x, y, w, h)
     }
+    return intersection
   }
 
-  getCSSShadowValue(z) {
+  protected getCSSShadowValue(z) {
     z = z <= 0 ? 0.5 : z
     let elevation = this.ELEVATION_INCREMENT * z
     let blur = 1.2 * elevation;
@@ -197,9 +209,9 @@ class Zed {
     return `0px ${elevation}px ${blur}px ${spread}px rgba(0, 0, 0, 0.18);`
   }
 
-  getSharedEdges(ixn, baseElem){
+  protected getSharedEdges(ixn, baseElem):string[] {
     const baseRect = baseElem.getBoundingClientRect()
-    let sharedEdges = []
+    let sharedEdges:string[] = []
     if (ixn.top === baseRect.top){sharedEdges.push('t')}
     if (ixn.right === baseRect.right){sharedEdges.push('r')}
     if (ixn.bottom === baseRect.bottom){sharedEdges.push('b')}
@@ -207,7 +219,7 @@ class Zed {
     return sharedEdges
   }
 
-  getExpandedBase(baseElem):DOMRect {
+  protected getExpandedBase(baseElem):DOMRect {
     const baseRect = baseElem.getBoundingClientRect()
     const z = this.getZed(baseElem)
     const z_px = this.ELEVATION_INCREMENT * z
@@ -218,7 +230,7 @@ class Zed {
     return new DOMRect(-z_px, -z_px, bw + 3*z_px, bh + 3*z_px);
   }
 
-  getExpandedIntersection(ixn, baseElem):DOMRect {
+  protected getExpandedIntersection(ixn, baseElem):DOMRect {
     const baseRect = baseElem.getBoundingClientRect()
     const sharedEdges = this.getSharedEdges(ixn, baseElem);
     const newBase = this.getExpandedBase(baseElem);
@@ -236,26 +248,26 @@ class Zed {
 
   // returns [expandedIxn, expandedBase]. 
   // expanded rectangles to accommodate for the big shadow
-  getExpandedRects(ixn, baseRect) {
+  protected getExpandedRects(ixn, baseRect) {
     const newBase = this.getExpandedBase(baseRect);
     const newIxn = this.getExpandedIntersection(ixn, baseRect)
     return [newIxn, newBase]
   }
 
-  getClipPath(ixn, baseElem) {
+  protected getClipPath(ixn, baseElem) {
     const baseRect = baseElem.getBoundingClientRect()
     const newIxn = this.getExpandedIntersection(ixn, baseElem);
     return `polygon(${this.calcPath(newIxn)})`;
   }
 
-  getAllBaseClipPath(intersections, baseElem):string {
+  protected getAllBaseClipPath(intersections, baseElem):string {
     const baseRect = baseElem.getBoundingClientRect()
     // TODO - Pass Elem into getExpanded*** functions so we know the elevation, 
     // and how far exactly to expand the box
     const newBase = this.getExpandedBase(baseElem);
     const basePath = this.calcPath(newBase, false);
 
-    let ixPaths = []
+    let ixPaths:string[] = []
     intersections.forEach(ixn => {
       if(!!ixn) {
         let newIxn = this.getExpandedIntersection(ixn, baseElem)
@@ -271,7 +283,7 @@ class Zed {
     } 
   }
 
-  calcPath(rect: DOMRect, clockwise = true){
+  protected calcPath(rect: DOMRect, clockwise = true){
     const tl = `${rect.x}px ${rect.y}px`;
     const tr = `${rect.right}px ${rect.y}px`
     const br = `${rect.right}px ${rect.bottom}px`
@@ -285,3 +297,20 @@ class Zed {
     }
   }  
 }
+
+function zedFactory() {
+  return Zed
+}
+
+declare var define;
+
+(
+  function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' 
+    ? module.exports = factory() 
+    : typeof define === 'function' && define.amd 
+      ? define(factory) 
+      : global.moment = factory()
+  }(this, zedFactory)
+);
+
