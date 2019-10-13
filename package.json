@@ -8,7 +8,7 @@
     "build:ts": "tsc src/zed.ts --outFile lib/zed.js",
     "build:sass": "sass src/zed.scss lib/zed.css",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "publish": "cp ../README.md README.md && npm publish"
+    "publish": "npm run build && npm publish"
   },
   "repository": {
     "type": "git",
