@@ -13,5 +13,5 @@ fs.copyFile(src_dir + 'zed.js', './zed/zed.js', (err) => {
 
 fs.copyFile(src_dir + 'zed.css', './zed/zed.css', (err) => {
   if (err) throw err;
-  console.log('JS file copied');
+  console.log('CSS file copied');
 });
