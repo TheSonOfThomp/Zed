@@ -1,0 +1,26 @@
+@import url('../node_modules/zed-shadow/lib/zed.css');
+
+body {
+  background-color: rgba(243, 246, 253, 1);
+  position: relative;
+  margin: 50px;
+  font-family: --apple-system, Roboto, sans-serif;
+  color: #333333;
+}
+
+.app {
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  color: #2c3e50;
+  margin-top: 60px;
+}
+
+h1 {
+  display: flex;
+  align-items: center;
+}
+
+img {
+  width: 200px;
+}
+
+

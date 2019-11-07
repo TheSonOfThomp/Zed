@@ -57,3 +57,25 @@ Live updating should be coming soon!
 
 ## Examples
 See the [demo](./demo) directory to see examples in some common frameworks.
+
+## Development
+
+To develop Zed and test with one of the demo apps, first start watching the `src` directory:
+```
+npm run watch
+```
+
+Then link that directory to the demo app(s) you want to use
+
+```
+npm run link:ng // coming soon
+npm run link:react
+npm run link:vue
+```
+
+Finally run the demo app
+```
+npm run start:ng //coming soon
+npm run start:react
+npm run start:vue
+```

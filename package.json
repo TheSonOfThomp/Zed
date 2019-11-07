@@ -8,7 +8,16 @@
     "build:ts": "tsc src/zed.ts --outFile lib/zed.js",
     "build:sass": "sass src/zed.scss lib/zed.css",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "publish": "npm run build && npm publish"
+    "publish": "npm run build && npm publish",
+    "watch": "npm run watch:ts && npm run watch:sass",
+    "watch:sass": "nodemon src/zed.scss -x 'npm run build:sass'",
+    "watch:ts": "nodemon src/zed.ts -x 'npm run build:ts'",
+    "install:react": "cd ./demo/react-test/ && yarn",
+    "link:react": "yarn link && cd ./demo/react-test/ && yarn link zed-shadow",
+    "start:react": "cd ./demo/react-test/ && yarn start",
+    "install:vue": "cd ./demo/vue-test/ && npm i",
+    "link:vue": "npm link && cd ./demo/vue-test/ && npm link zed-shadow",
+    "start:vue": "cd ./demo/vue-test/ && npm run serve"
   },
   "repository": {
     "type": "git",

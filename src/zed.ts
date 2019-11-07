@@ -24,9 +24,13 @@ class Zed {
   // how many pixels is one z-index level worth?
   public ELEVATION_INCREMENT:number = 4
   
-  constructor(rootElement: Element){
+  constructor(rootElement: Element | string){
     // default to the document element if none is provided
-    this.rootElement = rootElement || document.documentElement;
+    if (typeof rootElement === 'string') {
+      this.rootElement = (document.querySelector(rootElement) as Element)
+    } else {
+      this.rootElement = rootElement || document.documentElement
+    }
     this.elevatedElements = []
     this.init()
   }
@@ -52,8 +56,8 @@ class Zed {
           intersections.push(this.getIntersectionOf(elem, otherElem))
           zDiffs.push(zDiff)
         }
+        debugger;
       })
-
       // Find or create main shadow element
       let baseShadowElem: Element;
       const baseShadowQuery = elem.querySelector('.base-shadow')
