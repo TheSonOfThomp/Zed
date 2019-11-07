@@ -6,35 +6,53 @@ class ZedTest extends React.Component {
 
   constructor(){
     super();
-    this.card1 = {z: 9}
-    this.card2 = {z: 5}
-    this.card3 = {z: 7}
+    this.state = {
+      cards: [
+        { z: 9 },
+        { z: 5 },
+        { z: 7 }
+      ]
+    }
+
+    this.incrementCard = this.incrementCard.bind(this)
   }
 
   componentDidMount(){
     this.Z = new Zed('#shadow-container')
   }
+
+  incrementCard(i){
+    const cards = this.state.cards
+    cards.splice(i, 1, { z: cards[i].z + 1 })
+    this.setState({
+      cards: cards
+    })
+  }
   
   render(){
     return (
       <div id="shadow-container">
+
         <div 
-          zed={this.card1.z}
+          zed={this.state.cards[0].z}
           id="card-1"
           className="card"
-        >Card 1 (z={ this.card1.z })</div>
+          onClick={() => this.incrementCard(0)}
+        >Card 1 (z={ this.state.cards[0].z })</div>
   
         <div 
-          zed={this.card2.z}
+          zed={this.state.cards[1].z}
           id="card-2"
           className="card" 
-        > Card 2(z = { this.card2.z })</div>
+          onClick={() => this.incrementCard(1)}
+        > Card 2(z = { this.state.cards[1].z })</div>
   
         <div 
-          zed={this.card3.z}
+          zed={this.state.cards[2].z}
           id="card-3"
           className="card" 
-        >Card 3(z = { this.card3.z })</div>
+          onClick={() => this.incrementCard(2)}
+        >Card 3(z = { this.state.cards[2].z })</div>
     </div>
     );
   }

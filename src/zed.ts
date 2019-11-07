@@ -9,16 +9,22 @@
 // - Should add MutationObservers to watch for [zed] attribute changes
 
 interface IIntersection {
-  id: string;
-  element1: Element;
-  element2: Element;
-  intersection: DOMRect;
+  primaryElement: Element;
+  intersectingElement: Element,
+  intersectionRect: DOMRect;
   zDiff: number; // +ve zDiff means element1 is higher
+}
+
+interface IElevatedElement {
+  element: Element,
+  z: number,
+  intersections: Array<IIntersection>
 }
 
 class Zed {
   private rootElement: Element;
-  private elevatedElements: Array<Element>;
+  private elevatedElements: Array<IElevatedElement>; // all elements with [zed] attributes
+  // private elementIntersections: Array<Array<IIntersection>>; // the intersections for element[i]
   private initialized:boolean = false;
 
   // how many pixels is one z-index level worth?
@@ -32,93 +38,36 @@ class Zed {
       this.rootElement = rootElement || document.documentElement
     }
     this.elevatedElements = []
+    // this.elementIntersections = []
     this.init()
   }
+
+  public update() {
+    this.init(this.elevatedElements)
+  }
   
-  init(elevatedElements?:Array<Element>){
+  init(elevatedElements?:Array<IElevatedElement>){
+
     // Get all the elevated elements on the page
-    this.elevatedElements = elevatedElements || Array.prototype.slice.call(this.rootElement.querySelectorAll('[zed]'));
+    this.elevatedElements = elevatedElements || Array.prototype.slice.call(this.rootElement.querySelectorAll('[zed]')).map(e => {
+      return {
+        element: e,
+        z: this.getZed(e),
+        intersections: []
+      }
+    });
 
     // Iterate over all the elevated elements
-    this.elevatedElements.forEach((elem, i) => {
-      let intersections:Array<DOMRect> = []
-      let zDiffs: Array<number> = [];
-      let z: number = this.getZed(elem);
-
-      // set actual z-index css
-      this.replaceStyle(elem, 'z-index', z.toString());
-
-      // Find all the intersections of elevated elements
-      this.elevatedElements.forEach((otherElem, j) => {
-        let otherZ = this.getZed(otherElem)//otherElem.getAttribute('z-index')
-        let zDiff = z - otherZ;
-        if(zDiff >= 0){
-          intersections.push(this.getIntersectionOf(elem, otherElem))
-          zDiffs.push(zDiff)
-        }
-        debugger;
-      })
-      // Find or create main shadow element
-      let baseShadowElem: Element;
-      const baseShadowQuery = elem.querySelector('.base-shadow')
-
-      if(!!baseShadowQuery){
-        baseShadowElem = baseShadowQuery;
-        this.replaceStyle(baseShadowElem, 'z-index', z.toString());
-        this.replaceStyle(baseShadowElem, 'box-shadow', this.getCSSShadowValue(z))
-      } else {
-        // Create the element
-        baseShadowElem = document.createElement('div');
-        baseShadowElem.classList.add('zed-shadow','base-shadow')
-        // Set the appropriate shadowHeight;
-        this.setStyle(baseShadowElem, `
-          box-shadow: ${this.getCSSShadowValue(z)};
-          z-index: -${z};
-        `)
-        // Add it to the DOM
-        elem.appendChild(baseShadowElem);
-      }
-
-      // Start adding the intersection shadows
-      if(intersections.length > 0){
-        this.replaceStyle(baseShadowElem, 'clip-path', `${this.getAllBaseClipPath(intersections, elem)}`)
-
-        let existingIxnElems = Array.prototype.slice.call(elem.querySelectorAll('.overlapping-shadow'));
-        // existingIxnElems.forEach(elem => { this.setStyle(elem, '') });
-        let countExistingIxns = existingIxnElems.length || 0
-
-        // intersections = intersections.filter(ixn => !!ixn) // filter out the undefined intersections
-
-        for (let ixnIndex = 0; ixnIndex < Math.max(countExistingIxns, intersections.length); ixnIndex++) {
-          const ixn = intersections[ixnIndex] || null
-          const ixnShadowElem = existingIxnElems[ixnIndex] || document.createElement('div');
-
-          if (!!ixn){
-            const ixnZ = zDiffs[ixnIndex]
-            ixnShadowElem.classList.add('zed-shadow','overlapping-shadow')
-            this.setStyle(ixnShadowElem, `
-              box-shadow: ${this.getCSSShadowValue(ixnZ)};
-              clip-path: ${this.getClipPath(ixn, elem)};
-            `)
-            if (!existingIxnElems[ixnIndex]){
-              elem.appendChild(ixnShadowElem); // the element does not exist. Create it
-            }
-          } else {
-            if(!!existingIxnElems[ixnIndex]){ // there are more existing elements than shadows
-              ixnShadowElem.parentNode.removeChild(ixnShadowElem)
-            }
-          }
-        } // end intersection loop
-      } // end intersections if
+    this.elevatedElements.forEach((eElem, i) => {
+      this.drawShadows(eElem, true)
+      // watch for changes in Zed
+      this.addMutationObserver(eElem.element)
     }) // end element loop
+    this.initialized = true;
   }
 
   public setElevationIncrement(newIncrement:number){
     this.ELEVATION_INCREMENT = newIncrement;
-  }
-
-  public update(){
-    this.init(this.elevatedElements)
   }
 
   /*
@@ -132,11 +81,147 @@ class Zed {
       return 0
     }
   }
+
+  protected drawShadows(elElem: IElevatedElement, updateIxns: boolean = false) {
+    let elem = elElem.element
+    // set the actual z-index css
+    this.replaceStyle(elem, 'z-index', this.getZed(elem).toString());
+
+    // Get all the intersections with other elevated elements
+    let validIntersections: Array<IIntersection> = updateIxns 
+      ? this.getIntersectionsForElement(elElem) 
+      : elElem.intersections
+
+
+    // if (!updateIxns) debugger
+    this.getBaseShadowForElement(elem)
+
+    // Start adding the intersection shadows
+    if (validIntersections.length > 0) {
+      this.drawOverlappingShadowsForElement(elElem)
+    }
+  }
+
+  protected getIntersectionsForElement(elElem:IElevatedElement) {
+    let elem = elElem.element
+
+    this.elevatedElements.forEach((otherElElem:IElevatedElement, j) => {
+      let otherElem = otherElElem.element
+      if (otherElem !== elem) {
+        const otherZ = this.getZed(otherElem) //otherElem.getAttribute('z-index')
+        const ixnIJ = this.getIntersectionOf(elem, otherElem);
+        const zDiff = this.getZed(elem) - otherZ;
+        if (ixnIJ.height > 0 && ixnIJ.width > 0) {
+          const ixnObject: IIntersection = {
+            primaryElement: elem,
+            intersectingElement: otherElem,
+            intersectionRect: ixnIJ,
+            zDiff: zDiff
+          } 
+          elElem.intersections.push(ixnObject)
+        }
+      }
+    })
+    return elElem.intersections
+  }
+
+  protected getElementIndex(elem: Element): number {
+    const index = this.elevatedElements.findIndex(ee => ee.element === elem)
+    return index
+  }
+
+  protected getBaseShadowForElement(elem: Element):Element {
+    // Find or create main shadow element
+    const baseElementExists = !!elem.querySelector('.base-shadow')
+    let baseShadowElem: Element = elem.querySelector('.base-shadow') || document.createElement('div');
+
+    if (!!baseElementExists) {
+      this.replaceStyle(baseShadowElem, 'z-index', this.getZed(elem).toString());
+      this.replaceStyle(baseShadowElem, 'box-shadow', this.getCSSShadowValue(this.getZed(elem)))
+    } else {
+      // Create the element
+      baseShadowElem.classList.add('zed-shadow', 'base-shadow')
+      // Set the appropriate shadowHeight;
+      this.setStyle(baseShadowElem,
+        `box-shadow: ${this.getCSSShadowValue(this.getZed(elem))};
+          z-index: -${this.getZed(elem)};
+        `)
+      // Add it to the DOM
+      elem.appendChild(baseShadowElem);
+    }
+    return baseShadowElem
+  }
+
+  protected drawOverlappingShadowsForElement(elElem: IElevatedElement) {
+    let elem = elElem.element
+    // update the element's clip-path
+    const elementIndex = this.getElementIndex(elem)
+    const baseShadowElem: Element = this.getBaseShadowForElement(elem)
+    const intersections: Array<IIntersection> = elElem.intersections
+
+    this.replaceStyle(
+      baseShadowElem,
+      'clip-path',
+      `${this.getAllBaseClipPath(intersections.map(ixn => ixn.intersectionRect), elem)}`
+    )
+
+    // Loop all valid for this element
+    intersections.forEach((ixn) => {
+      // console.log(ixn.primaryElement.id, ixn.intersectingElement.id)
+      // console.log(ixn.intersectionRect.x, ixn.intersectionRect.y, ixn.intersectionRect.width, ixn.intersectionRect.height)
+      this.drawOverlappingShadowForIntersection(ixn)
+    })
+  }
+
+  protected drawOverlappingShadowForIntersection(ixn: IIntersection):void {
+    const zDiff = ixn.zDiff;
+    const primaryElem = ixn.primaryElement;
+    const shadowExists = !!primaryElem.querySelector('.overlapping-shadow')
+    const thisIxnShadowElement: Element = primaryElem.querySelector('.overlapping-shadow') || document.createElement('div')
+
+    const ixnZ = Math.abs(ixn.zDiff);
+    if (zDiff > 0) {
+      thisIxnShadowElement.classList.add('zed-shadow', 'overlapping-shadow')
+      const shadowVal = this.getCSSShadowValue(ixnZ)
+      const clipPath = this.getClipPath(ixn.intersectionRect, primaryElem);
+
+      console.log(clipPath) // TODO Find out why clipPath changes every time it's called with the same args
+      
+      this.setStyle(thisIxnShadowElement, `
+        box-shadow: ${shadowVal};
+        clip-path: ${clipPath}
+      `)
+      if (!shadowExists) {
+        primaryElem.appendChild(thisIxnShadowElement); // the element does not exist. Create it
+      }
+    }  
+    // else {
+    //   if (shadowExists) { // there are more existing elements than shadows
+    //     thisIxnShadowElement.parentNode.removeChild(thisIxnShadowElement)
+    //   }
+    // }
+  }
+
+  protected addMutationObserver(elem: Element):void {
+    // console.log('Adding Mutation Observer to ', elem.id)
+    const observer = new MutationObserver((mutations:Array<any>, obs) => {
+      mutations.forEach(mutation => {
+        if (mutation.type === "attributes" && mutation.attributeName === 'zed') {
+          console.log(`Updated Zed of ${elem.id}`, elem)
+          this.drawShadows(this.elevatedElements[this.getElementIndex(elem)])
+        }
+      });
+    })
+
+    observer.observe(elem, {attributes: true, childList: false, subtree: false})
+  }
+
+
   /*
    * Sets the [style] attribute of the provided HTML element
    */
   protected setStyle(elem: Element, style:string){
-    elem.setAttribute('style', style)
+    elem.setAttribute('style', style.replace(/\n/, ''))
   }
 
   /*
@@ -164,30 +249,6 @@ class Zed {
     }
   }
 
-  // getAllIntersections(elements: Array<Element>):Array<IIntersection> {
-  //   const allIxns: Array<IIntersection> = [];
-  //   this.elevatedElements.forEach((elem, i) => {
-  //     let z: number = this.getZed(elem);
-
-  //     // Find all the intersections of elvated elements
-  //     this.elevatedElements.slice(i).forEach((otherElem, j) => {
-  //       const otherZ = this.getZed(otherElem)
-  //       const ixnRect = this.getIntersectionOf(elem, otherElem)
-  //       const zDiff = z - otherZ;
-  //       if(ixnRect){
-  //         allIxns.push({
-  //           id: `${ixnRect.x}-${ixnRect.y}-${ixnRect.width}-${ixnRect.width}`,
-  //           element1: elem,
-  //           element2: otherElem,
-  //           intersection: ixnRect,
-  //           zDiff: zDiff
-  //         })
-  //       }
-  //     })
-  //   })
-  //   return allIxns;
-  // }
-
   /*
    * Returns a DOMRect (relative to the viewport) that is the intersection of the provided 2 HTML elements
    */
@@ -200,18 +261,18 @@ class Zed {
     let topmostElem = elem2.top > elem1.top ? elem2 : elem1
     let bottommostElem = elem2.top > elem1.top ? elem1 : elem2
 
-    let x = leftmostElem.left;
-    let y = topmostElem.top;
-    let w = rightmostElem.right - leftmostElem.left;
-    let h = bottommostElem.bottom - topmostElem.top;
+    let x = Math.round(leftmostElem.left);
+    let y = Math.round(topmostElem.top);
+    let w = Math.round(rightmostElem.right - leftmostElem.left);
+    let h = Math.round(bottommostElem.bottom - topmostElem.top);
 
     let intersection: DOMRect = new DOMRect();
 
     if (w > 0 
         && h > 0 
         && w < Math.min(elem1.width, elem2.width) 
-        && h < Math.min(elem1.height, elem2.height)) 
-    {
+        && h < Math.min(elem1.height, elem2.height)
+    ) {
       intersection = new DOMRect(x, y, w, h)
     }
     return intersection
@@ -220,7 +281,7 @@ class Zed {
   /*
    * Returns the CSS shadow rule given a z-position
    */
-  protected getCSSShadowValue(z:number) {
+  protected getCSSShadowValue(z:number):string {
     z = z <= 0 ? 0.5 : z
     let elevation = this.ELEVATION_INCREMENT * z
     let blur = 1.2 * elevation;
@@ -258,6 +319,10 @@ class Zed {
   /*
    * Returns an expanded DOMRect intersection so the shadow doesn't clip
    */
+  // 
+  // TODO 
+  // THERES SOMETHING WRONG WITH THIS FUNCTION. 
+  // 
   protected getExpandedIntersection(ixn:DOMRect, baseElem:Element):DOMRect {
     const baseRect = (baseElem.getBoundingClientRect() as DOMRect)
     const sharedEdges = this.getSharedEdges(ixn, baseElem);
@@ -286,7 +351,7 @@ class Zed {
   /*
    * Returns the clip-path polygon on an element from the provided DOMRect
    */
-  protected getClipPath(ixn:DOMRect, baseElem:Element) {
+  protected getClipPath(ixn:DOMRect, baseElem:Element):string {
     // const baseRect = baseElem.getBoundingClientRect()
     const newIxn = this.getExpandedIntersection(ixn, baseElem);
     return `polygon(${this.calcPath(newIxn)})`;
@@ -320,7 +385,7 @@ class Zed {
   /*
    * Returns a clip-path polygon from the provided DOMRect
    */
-  protected calcPath(rect: DOMRect, clockwise:boolean = true){
+  protected calcPath(rect: DOMRect, clockwise:boolean = true): string{
     const tl = `${rect.x}px ${rect.y}px`;
     const tr = `${rect.right}px ${rect.y}px`
     const br = `${rect.right}px ${rect.bottom}px`
@@ -335,12 +400,12 @@ class Zed {
   }  
 }
 
+
 function zedFactory() {
   return Zed
 }
 
 declare var define:any;
-
 (
   function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' 
