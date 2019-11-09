@@ -8,6 +8,9 @@
 //
 // - Should add MutationObservers to watch for [zed] attribute changes
 
+// TODO - COPY all assignments from the base element 
+// Don't just use the reference, 'cause then it expands the original DOMRect
+
 interface IIntersection {
   primaryElement: Element;
   intersectingElement: Element,
@@ -56,6 +59,8 @@ class Zed {
         intersections: []
       }
     });
+
+    console.log(this.elevatedElements.map(el => el.element.getBoundingClientRect()))
 
     // Iterate over all the elevated elements
     this.elevatedElements.forEach((eElem, i) => {
@@ -185,7 +190,7 @@ class Zed {
       const shadowVal = this.getCSSShadowValue(ixnZ)
       const clipPath = this.getClipPath(ixn.intersectionRect, primaryElem);
 
-      console.log(clipPath) // TODO Find out why clipPath changes every time it's called with the same args
+      // console.log(clipPath) // TODO Find out why clipPath changes every time it's called with the same args
       
       this.setStyle(thisIxnShadowElement, `
         box-shadow: ${shadowVal};
@@ -208,7 +213,9 @@ class Zed {
       mutations.forEach(mutation => {
         if (mutation.type === "attributes" && mutation.attributeName === 'zed') {
           console.log(`Updated Zed of ${elem.id}`, elem)
+          console.log(this.elevatedElements.map(el => el.element.getBoundingClientRect()))
           this.drawShadows(this.elevatedElements[this.getElementIndex(elem)])
+
         }
       });
     })
@@ -295,20 +302,24 @@ class Zed {
   protected getSharedEdges(ixn:DOMRect, baseElem:Element):string[] {
     const baseRect = baseElem.getBoundingClientRect()
     let sharedEdges:string[] = []
-    if (ixn.top === baseRect.top){sharedEdges.push('t')}
-    if (ixn.right === baseRect.right){sharedEdges.push('r')}
-    if (ixn.bottom === baseRect.bottom){sharedEdges.push('b')}
-    if (ixn.left === baseRect.left){sharedEdges.push('l')}
+    if (Math.round(ixn.top) === Math.round(baseRect.top)){sharedEdges.push('t')}
+    if (Math.round(ixn.right) === Math.round(baseRect.right)){sharedEdges.push('r')}
+    if (Math.round(ixn.bottom) === Math.round(baseRect.bottom)){sharedEdges.push('b')}
+    if (Math.round(ixn.left) === Math.round(baseRect.left)){sharedEdges.push('l')}
+
+    // console.log(baseElem.id, sharedEdges, ixn, baseRect)
+
     return sharedEdges
   }
 
   /*
    * Returns an expanded base element so the shadow doesn't clip
    */
-  protected getExpandedBase(baseElem:Element):DOMRect {
+  protected getExpandedBaseRect(baseElem:Element):DOMRect {
     const baseRect = baseElem.getBoundingClientRect()
     const z = this.getZed(baseElem)
     const z_px = this.ELEVATION_INCREMENT * z
+
     // expand the baseRect by 50% in all directions (to accommodate the big shadow)
     // Original x,y is 0, 0
     const bw = baseRect.width
@@ -323,53 +334,43 @@ class Zed {
   // TODO 
   // THERES SOMETHING WRONG WITH THIS FUNCTION. 
   // 
-  protected getExpandedIntersection(ixn:DOMRect, baseElem:Element):DOMRect {
+  protected getExpandedIntersectionRect(ixn:DOMRect, baseElem:Element):DOMRect {
     const baseRect = (baseElem.getBoundingClientRect() as DOMRect)
     const sharedEdges = this.getSharedEdges(ixn, baseElem);
-    const newBase = this.getExpandedBase(baseElem);
+    const expandedBaseRect = this.getExpandedBaseRect(baseElem);
 
     // expand the intersection along the shared edges
-    const iy = sharedEdges.includes('t') ? newBase.y : ixn.y - baseRect.y
-    const ir = sharedEdges.includes('r') ? newBase.right : ixn.right - baseRect.x
-    const ib = sharedEdges.includes('b') ? newBase.bottom : ixn.bottom - baseRect.y
-    const ix = sharedEdges.includes('l') ? newBase.x : ixn.x - baseRect.x
+    const iy = sharedEdges.includes('t') ? expandedBaseRect.y : ixn.y - baseRect.y
+    const ir = sharedEdges.includes('r') ? expandedBaseRect.right : ixn.right - baseRect.x
+    const ib = sharedEdges.includes('b') ? expandedBaseRect.bottom : ixn.bottom - baseRect.y
+    const ix = sharedEdges.includes('l') ? expandedBaseRect.x : ixn.x - baseRect.x
     const iw = ir - ix;
     const ih = ib - iy;
 
     return new DOMRect(ix, iy, iw, ih);
   }
 
-  /*
-   * Returns an expanded DOMRect and Element so the shadow doesn't clip
-   */
-  protected getExpandedRects(ixn:DOMRect, baseRect:Element) {
-    const newBase = this.getExpandedBase(baseRect);
-    const newIxn = this.getExpandedIntersection(ixn, baseRect)
-    return [newIxn, newBase]
-  }
   
   /*
    * Returns the clip-path polygon on an element from the provided DOMRect
    */
   protected getClipPath(ixn:DOMRect, baseElem:Element):string {
     // const baseRect = baseElem.getBoundingClientRect()
-    const newIxn = this.getExpandedIntersection(ixn, baseElem);
-    return `polygon(${this.calcPath(newIxn)})`;
+    const newIxnRect = this.getExpandedIntersectionRect(ixn, baseElem);
+    return `polygon(${this.calcPath(newIxnRect)})`;
   }
 
   /*
    * Returns all the clip-path polygons on an element from the provided array of DOMRects
    */
   protected getAllBaseClipPath(intersections:DOMRect[], baseElem:Element):string {
-    // TODO - Pass Elem into getExpanded*** functions so we know the elevation, 
-    // and how far exactly to expand the box
-    const newBase = this.getExpandedBase(baseElem);
+    const newBase = this.getExpandedBaseRect(baseElem);
     const basePath = this.calcPath(newBase, false);
 
     let ixPaths:string[] = []
     intersections.forEach(ixn => {
       if(!!ixn) {
-        let newIxn = this.getExpandedIntersection(ixn, baseElem)
+        let newIxn = this.getExpandedIntersectionRect(ixn, baseElem)
         ixPaths.push(this.calcPath(newIxn, true)) 
       }
     })
@@ -386,10 +387,10 @@ class Zed {
    * Returns a clip-path polygon from the provided DOMRect
    */
   protected calcPath(rect: DOMRect, clockwise:boolean = true): string{
-    const tl = `${rect.x}px ${rect.y}px`;
-    const tr = `${rect.right}px ${rect.y}px`
-    const br = `${rect.right}px ${rect.bottom}px`
-    const bl = `${rect.x}px ${rect.bottom}px`
+    const tl = `${Math.round(rect.x)}px ${Math.round(rect.y)}px`;
+    const tr = `${Math.round(rect.right)}px ${Math.round(rect.y)}px`
+    const br = `${Math.round(rect.right)}px ${Math.round(rect.bottom)}px`
+    const bl = `${Math.round(rect.x)}px ${Math.round(rect.bottom)}px`
 
     if (clockwise) {
      return `${tl}, ${tr}, ${br}, ${bl}, ${tl}` 
