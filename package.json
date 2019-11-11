@@ -36,6 +36,7 @@
   "homepage": "https://github.com/TheSonOfThomp/Zed#readme",
   "devDependencies": {
     "@types/node": "^12.7.12",
+    "nodemon": "^1.19.4",
     "sass": "^1.23.0",
     "typescript": "^3.6.4"
   }
