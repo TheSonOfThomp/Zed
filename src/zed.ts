@@ -14,27 +14,6 @@ import {Intersection} from "./Intersection";
 // TODO - COPY all assignments from the base element 
 // Don't just use the reference, 'cause then it expands the original DOMRect
 
-
-
-// interface IIntersection {
-//   primaryElementRef: IElevatedElement,
-//   primaryElement: Element;
-//   intersectingElement: Element,
-//   intersectingElementRef: IElevatedElement,
-//   intersectionRect: DOMRect;
-//   shadowElement: Element | null,
-//   zDiff: number; // +ve zDiff means element1 is higher
-// }
-
-// interface IElevatedElement {
-//   element: Element,
-//   baseRect: DOMRect,
-//   z: number,
-//   intersections: Array<IIntersection>
-//   baseShadowElement: Element,
-//   overlappingShadows: Array<Element>;
-// }
-
 class Zed {
   private rootElement: Element;
   private elevatedElements: Array<ElevatedElement>; // all elements with [zed] attributes
@@ -62,6 +41,7 @@ class Zed {
     this.init(this.elevatedElements)
   }
   
+  
   init(elevatedElements?:Array<ElevatedElement>){
     // Get all the elevated elements on the page
     this.elevatedElements = elevatedElements || Array.prototype.slice.call(this.rootElement.querySelectorAll('[zed]')).map(e => {
@@ -82,6 +62,7 @@ class Zed {
     })
     this.initialized = true;
   }
+
 
   protected updateZed(elElem: ElevatedElement) {
     console.log('Updating', elElem.element.id )
