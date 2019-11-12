@@ -62,7 +62,9 @@ See the [demo](./demo) directory to see examples in some common frameworks.
 
 To develop Zed and test with one of the demo apps, first start watching the `src` directory:
 ```
-npm run watch
+npm run watch:ts
+
+gulp
 ```
 
 Then link that directory to the demo app(s) you want to use

@@ -4,3 +4,5 @@ lib/
 package/
 **/*.tgz
 .vscode
+src/*.js
+src/*.css
