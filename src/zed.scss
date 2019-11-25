@@ -1,32 +1,22 @@
-.zed-shadow {
-  border-radius: inherit;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  transition: cubic-bezier(0.075, 0.82, 0.165, 1) box-shadow 500ms;
-  background-color: rgba(0, 0, 255, 0.1);
+.zed-element {
+  > * {
+    z-index: 1;
+  }
+
+  .zed-shadow {
+    border-radius: inherit;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transition: cubic-bezier(0.075, 0.82, 0.165, 1) box-shadow 500ms;
+    // background-color: rgba(0, 0, 255, 0.1);
+  }
+  
+  .overlapping-shadow {
+    // background-color: rgba(255, 0, 0, 0.1);
+  }
 }
-
-.overlapping-shadow {
-  background-color: rgba(255, 0, 0, 0.1);
-}
-
-/*# sourceMappingURL=zed.scss.map */
-/*# sourceMappingURL=zed.scss.map */
-/*# sourceMappingURL=zed.scss.map */
-/*# sourceMappingURL=zed.scss.map */
-/*# sourceMappingURL=zed.scss.map */
-/*# sourceMappingURL=zed.scss.map */
-/*# sourceMappingURL=zed.scss.map */
-/*# sourceMappingURL=zed.scss.map */
-/*# sourceMappingURL=zed.scss.map */
-/*# sourceMappingURL=zed.scss.map */
-/*# sourceMappingURL=zed.scss.map */
-/*# sourceMappingURL=zed.scss.map */
-/*# sourceMappingURL=zed.scss.map */
-
-/*# sourceMappingURL=zed.scss.map */

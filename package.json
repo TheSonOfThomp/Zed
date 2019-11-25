@@ -39,6 +39,7 @@
     "typescript": "^3.6.4"
   },
   "dependencies": {
+    "gulp-sass": "^4.0.2",
     "gulp-typescript": "^5.0.1"
   }
 }

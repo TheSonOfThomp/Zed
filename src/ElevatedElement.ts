@@ -1,29 +1,39 @@
-import {Intersection} from "./Intersection";
+import Intersection from "./Intersection";
 
-export class ElevatedElement {
+export default class ElevatedElement {
   element: Element;
   baseRect: DOMRect;
-  // z: number;
   intersections: Array<Intersection>
   baseShadowElement: Element;
   overlappingShadows: Array<Element>;
+  private _z: number;
+  
+  get z(): number {
+    return this._z
+  }
+  set z(newZ: number) {
+    // Update this z
+    this._z = newZ
+    // Update zDiffs for all intersections
+    this.updateIntersections()
+  }
+
+  public updateIntersections() {
+    for(let ixn of this.intersections){
+      ixn.updateZDiff()
+    }
+  }
   
   constructor({ element, baseRect, z, intersections, baseShadowElement, overlappingShadows}){
     this.element = element;
     this.baseRect = baseRect;
-    this.z = z;
     this.intersections = intersections;
     this.baseShadowElement = baseShadowElement;
     this.overlappingShadows = overlappingShadows;
+    this._z = z;
   }
 
-  get z():number {
-    return this.z
-  }
-  set z(_z: number){
-    // do setter stuff
-    this.z = _z
-  }
+
 }
 
 function eeFactory() {

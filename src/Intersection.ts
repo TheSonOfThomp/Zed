@@ -1,6 +1,6 @@
-import {ElevatedElement} from "./ElevatedElement";
+import ElevatedElement from "./ElevatedElement";
 
-export class Intersection {
+export default class Intersection {
   primaryElementRef: ElevatedElement;
   primaryElement: Element;
   intersectingElement: Element;
@@ -17,6 +17,10 @@ export class Intersection {
     this.intersectionRect  = intersectionRect;
     this.shadowElement = shadowElement;
     this.zDiff = zDiff;
+  }
+
+  updateZDiff(){
+    this.zDiff = this.primaryElementRef.z - this.intersectingElementRef.z
   }
 }
 

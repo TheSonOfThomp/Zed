@@ -1,61 +1,38 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import './zedTest.scss';
 import Zed from 'zed-shadow';
+import Card from './Card/Card';
+import Dropdown from './Dropdown/Dropdown';
 
-class ZedTest extends React.Component {
-
-  constructor(){
-    super();
-    this.state = {
-      cards: [
-        { z: 9 },
-        { z: 5 },
-        { z: 7 }
-      ]
-    }
-
-    this.incrementCard = this.incrementCard.bind(this)
-  }
-
-  componentDidMount(){
-    this.Z = new Zed('#shadow-container')
-  }
-
-  incrementCard(i){
-    const cards = this.state.cards
-    cards.splice(i, 1, { z: cards[i].z + 1 })
-    this.setState({
-      cards: cards
-    })
-  }
+const ZedTest = () => {
+  const [z1, setZ1] = useState(3)
+  const [z2, setZ2] = useState(2)
+  const [z3, setZ3] = useState(1)
   
-  render(){
-    return (
-      <div id="shadow-container">
+  useEffect(() => {
+    // eslint-disable-next-line
+    const Z = new Zed('#shadow-container');
+  }, [])
 
-        <div 
-          zed={this.state.cards[0].z}
-          id="card-1"
-          className="card"
-          onClick={() => this.incrementCard(0)}
-        >Card 1 (z={ this.state.cards[0].z })</div>
-  
-        <div 
-          zed={this.state.cards[1].z}
-          id="card-2"
-          className="card" 
-          onClick={() => this.incrementCard(1)}
-        > Card 2(z = { this.state.cards[1].z })</div>
-  
-        <div 
-          zed={this.state.cards[2].z}
-          id="card-3"
-          className="card" 
-          onClick={() => this.incrementCard(2)}
-        >Card 3(z = { this.state.cards[2].z })</div>
-    </div>
-    );
-  }
+  return (
+    <div id="shadow-container">
+      <Card 
+        id="card-1" 
+        zed={z1} 
+        setZ={setZ1}
+      />
+      <Card 
+        id="card-2" 
+        zed={z2} 
+        setZ={setZ2}
+      />
+      <Card 
+        id="card-3" 
+        zed={z3} 
+        setZ={setZ3}
+      />
+  </div>
+  );
 }
 
 export default ZedTest;
