@@ -6,14 +6,7 @@ import Intersection from "./Intersection";
 // - Does not deal well with more than 2 layers of overlap
 // -- Need to clip all but the highest clip path
 //
-// - Need to check whether we need to update or not. Lots of unnecessary updating happening
-//
 // - Odd behaviour when the distance between cards is less than the shadow spread (too much/too little shadow)
-//
-// - Should add MutationObservers to watch for [zed] attribute changes
-
-// TODO - COPY all assignments from the base element 
-// Don't just use the reference, 'cause then it expands the original DOMRect
 
 class Zed {
   private rootElement: Element;
@@ -44,6 +37,18 @@ class Zed {
   }
   
   init(elevatedElements?:Array<ElevatedElement>){
+
+    // TODO - Implement [zed-relative], and add the true [zed] attribute
+    // Find relative elements
+    // TODO - Intersections are not calculating. Find out why.
+    const relativeElements = this.rootElement.querySelectorAll('[zed-rel]')
+
+    Array.prototype.slice.call(relativeElements).forEach(elem => {
+      const parentZ = this.getParentZed(elem)
+      const absZ = parentZ + parseInt(elem.getAttribute('zed-rel'))
+      elem.setAttribute('zed', absZ)
+    })
+
     // Get all the elevated elements on the page
     this.elevatedElements = elevatedElements || this.getElevatedElements()
 
@@ -53,6 +58,7 @@ class Zed {
       this.drawShadows(elElem, true)
       this.addMutationObserver(elElem) // watch for changes in [zed]
     })
+    // console.log(this.elevatedElements)
     this.initialized = true;
   }
 
@@ -77,12 +83,22 @@ class Zed {
     if (!!_zed){
       return parseFloat(_zed)
     } else {
-      return 0
+      return -1
+    }
+  }
+
+  protected getParentZed(elem: Element){
+    let _z = this.getZed(elem)
+    if(_z > 0) {
+      return _z
+    } else {
+      return this.getParentZed((elem.parentElement as Element))
     }
   }
 
   protected getElevatedElements(): Array<ElevatedElement>{
-    return Array.prototype.slice.call(this.rootElement.querySelectorAll('[zed]')).map(e => {
+    const elements = this.rootElement.querySelectorAll('[zed]')
+    return Array.prototype.slice.call(elements).map(e => {
       return new ElevatedElement({
         element: e,
         baseRect: this.cloneDOMRect(e.getBoundingClientRect()),
@@ -247,30 +263,23 @@ class Zed {
    * Returns a DOMRect (relative to the viewport) that is the intersection of the provided 2 HTML elements
    */
   protected getIntersectionRectOf(elem1: ElevatedElement, elem2: ElevatedElement):DOMRect {
-    //console.trace('getIntersectionRectOf', elem1.element.id, elem2.element.id)
     const rect1 = elem1.baseRect
     const rect2 = elem2.baseRect
-
-    const leftmostElem = rect2.left > rect1.left ? rect2 : rect1
-    const rightmostElem = rect2.left > rect1.left ? rect1 : rect2
-    const topmostElem = rect2.top > rect1.top ? rect2 : rect1
-    const bottommostElem = rect2.top > rect1.top ? rect1 : rect2
-
-    const x = Math.round(leftmostElem.left);
-    const y = Math.round(topmostElem.top);
-    const w = Math.round(rightmostElem.right - leftmostElem.left);
-    const h = Math.round(bottommostElem.bottom - topmostElem.top);
-
-    let intersection: DOMRect = new DOMRect();
-
-    if (w > 0 
-        && h > 0 
-        && w < Math.min(rect1.width, rect2.width) 
-        && h < Math.min(rect1.height, rect2.height)
-    ) {
-      intersection = new DOMRect(x, y, w, h)
+    
+    // return an empty rect if there is no intersection
+    if (rect1.left > rect2.right || rect2.left > rect1.right) {
+      return new DOMRect();
+    } else if (rect1.bottom < rect2.top || rect2.bottom < rect1.top){
+      return new DOMRect();
     }
-    return intersection
+
+    const left = Math.max(rect1.left, rect2.left) // the right-most left edge
+    const top = Math.max(rect1.top, rect2.top) // the bottom-most top edge
+    const right = Math.min(rect1.right, rect2.right) // the left-most right edge
+    const bottom = Math.min(rect1.bottom, rect2.bottom) // the top-most bottom edge
+    const width = right - left
+    const height = bottom - top
+    return new DOMRect(left, top, width, height)
   }
 
   /*
