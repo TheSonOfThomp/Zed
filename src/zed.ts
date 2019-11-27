@@ -38,9 +38,7 @@ class Zed {
   
   init(elevatedElements?:Array<ElevatedElement>){
 
-    // TODO - Implement [zed-relative], and add the true [zed] attribute
-    // Find relative elements
-    // TODO - Intersections are not calculating. Find out why.
+    // Find relatively elevated elements
     const relativeElements = this.rootElement.querySelectorAll('[zed-rel]')
 
     Array.prototype.slice.call(relativeElements).forEach(elem => {
@@ -63,16 +61,11 @@ class Zed {
   }
 
 
-  protected updateZed(elElem: ElevatedElement) {
+  protected updateZed(elElem: ElevatedElement, shouldUpdateIntersections: boolean = false) {
     elElem.z = this.getZed(elElem.element)
-
-    // // Update base shadow
-    // const newBaseShadow = this.getCSSShadowValue(elElem.z)
-    // this.replaceStyle(elElem.baseShadowElement, 'box-shadow', newBaseShadow)
-    this.setBaseShadowStyle(elElem)
-
-    // Update overlapping shadows
-    this.drawOverlappingShadowsForElement(elElem)
+    // Update shadows
+    // TODO update the intersecting component as well when updating Intersections
+    this.drawShadows(elElem, shouldUpdateIntersections)
   }
 
   /*
@@ -110,12 +103,12 @@ class Zed {
     });
   }
 
-  protected drawShadows(elElem: ElevatedElement, shouldUpdateIxns: boolean = false) {
+  protected drawShadows(elElem: ElevatedElement, shouldRecalculateIntersections: boolean = false) {
     // set the actual z-index css
     this.replaceStyle(elElem.element, 'z-index', elElem.z.toString());
 
     // Get all the intersections with other elevated elements
-    let elementsIntersections: Array<Intersection> = shouldUpdateIxns 
+    let elementsIntersections: Array<Intersection> = shouldRecalculateIntersections 
       ? this.getIntersectionsForElement(elElem) 
       : elElem.intersections
 
@@ -356,7 +349,6 @@ class Zed {
    * Returns all the clip-path polygons on an element from the provided array of DOMRects
    */
   protected getAllBaseClipPath(intersections:DOMRect[], baseElElem: ElevatedElement):string {
-    console.log('getAllBaseClipPath', baseElElem.element.id)
     const newBase = this.getExpandedBaseRect(baseElElem);
     const basePath = this.calcPath(newBase, false);
 
@@ -403,15 +395,14 @@ class Zed {
   }
 
   protected addMutationObserver(elevatedElem: ElevatedElement): void {
-    const observer = new MutationObserver((mutations: Array<any>, obs) => {
+    const ZedObserver = new MutationObserver((mutations: Array<any>, obs) => {
       mutations.forEach(mutation => {
-        if (mutation.type === "attributes" && mutation.attributeName === 'zed') {
-          // console.log(`Updated Zed of ${elevatedElem.element.id}`)
-          this.updateZed(elevatedElem)
+        if (mutation.attributeName === 'zed' || mutation.attributeName === 'zed-rel') {
+          this.updateZed(elevatedElem, false)
         }
       });
     })
-    observer.observe(elevatedElem.element, { attributes: true, childList: false, subtree: false })
+    ZedObserver.observe(elevatedElem.element, { attributes: true, childList: false, subtree: false })
   }
 }
 

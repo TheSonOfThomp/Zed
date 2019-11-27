@@ -1,5 +1,4 @@
 import React, {useEffect, useRef, useState} from 'react';
-import PropTypes from 'prop-types';
 import './Dropdown.scss'
 import DropdownMenu from '../DropdownMenu/DropdownMenu';
 
@@ -13,7 +12,6 @@ const Dropdown = (props) => {
       display: isMenuVisible ? 'block' : 'none',
       width: `${buttonRef.current.offsetWidth}px`,
     })
-
   }, [buttonRef, isMenuVisible])
 
   const handleClick = () => {
@@ -25,7 +23,11 @@ const Dropdown = (props) => {
       <span ref={buttonRef} onClick={() => handleClick()}>
         Click me
       </span>
-      <DropdownMenu options={props.options} style={menuStyle}/>
+      <DropdownMenu 
+        zRel={isMenuVisible ? 1 : 0}
+        options={props.options} 
+        style={menuStyle}
+      />
     </div>
   )
 };

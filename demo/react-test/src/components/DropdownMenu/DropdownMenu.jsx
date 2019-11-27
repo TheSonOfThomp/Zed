@@ -5,7 +5,7 @@ import './DropdownMenu.scss';
 const DropdownMenu = (props) => {
   
   return (
-    <ul id="dropdown-menu" zed={3} style={{...props.style }}>
+    <ul id="dropdown-menu" zed-rel={props.zRel} style={{...props.style }}>
       {props.options.map(opt => {
         return (
           <li key={opt}>{opt}</li>
@@ -16,11 +16,7 @@ const DropdownMenu = (props) => {
 };
 
 DropdownMenu.propTypes = {
-  // bla: PropTypes.string,
-};
-
-DropdownMenu.defaultProps = {
-  // bla: 'test',
+  zRel: PropTypes.number,
 };
 
 export default DropdownMenu;

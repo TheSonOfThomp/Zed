@@ -11,7 +11,7 @@ const Card = (props) => (
     onMouseUp={() => props.setZ(props.zed - 1)}
   >
     Z =  {props.zed}
-    {/* <Dropdown /> */}
+    <Dropdown />
   </div>
 );
 
