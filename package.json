@@ -30,16 +30,15 @@
   },
   "homepage": "https://github.com/TheSonOfThomp/Zed#readme",
   "devDependencies": {
-    "@types/node": "^12.7.12",
+    "@types/node": "^12.12.42",
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
     "gulp-minify": "^3.1.0",
+    "gulp-sass": "^4.1.0",
+    "gulp-typescript": "^5.0.1",
     "nodemon": "^1.19.4",
-    "sass": "^1.23.0",
-    "typescript": "^3.6.4"
+    "sass": "^1.26.5",
+    "typescript": "^3.9.3"
   },
-  "dependencies": {
-    "gulp-sass": "^4.0.2",
-    "gulp-typescript": "^5.0.1"
-  }
+  "dependencies": {}
 }
