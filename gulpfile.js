@@ -11,13 +11,13 @@ function compile_ts(){
     .pipe(concat('zed.js'))
     .pipe(minify())
     .pipe(dest('lib/'))
-  }
+}
   
-  function compile_sass() {
-    return src('src/*.scss')
-    .pipe(sass().on('error', sass.logError))
-    .pipe(minify())
-    .pipe(dest('lib/'))
+function compile_sass() {
+  return src('src/*.scss')
+  .pipe(sass().on('error', sass.logError))
+  .pipe(minify())
+  .pipe(dest('lib/'))
 }
 
 function pack_js() {
@@ -32,9 +32,7 @@ function pack_css() {
     .pipe(dest('lib/'));
 }
 
-
 exports.default = function () {
-  watch('src/*.ts', compile_ts)
   watch('src/*.scss', compile_sass);
   watch('src/*.css', pack_css);
   watch('src/*.js', pack_js);

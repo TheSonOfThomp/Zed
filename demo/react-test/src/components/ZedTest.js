@@ -5,13 +5,14 @@ import Card from './Card/Card';
 // import Dropdown from './Dropdown/Dropdown';
 
 const ZedTest = () => {
-  const [z1, setZ1] = useState(3)
-  const [z2, setZ2] = useState(2)
-  const [z3, setZ3] = useState(4)
+  const [z1, setZ1] = useState(24)
+  const [z2, setZ2] = useState(12)
+  const [z3, setZ3] = useState(16)
   
   useEffect(() => {
     // eslint-disable-next-line
     const Z = new Zed('#shadow-container');
+    console.log(Z)
   }, [])
 
   return (

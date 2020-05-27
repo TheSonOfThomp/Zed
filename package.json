@@ -3,17 +3,10 @@
   "version": "0.0.2",
   "description": "Zed - The true elevation library",
   "main": "lib/zed.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "publish": "npm run build && npm publish",
-    "watch": "gulp",
-    "install:react": "cd ./demo/react-test/ && yarn",
-    "link:react": "yarn link && cd ./demo/react-test/ && yarn link zed-shadow",
-    "start:react": "cd ./demo/react-test/ && yarn start",
-    "install:vue": "cd ./demo/vue-test/ && npm i",
-    "link:vue": "npm link && cd ./demo/vue-test/ && npm link zed-shadow",
-    "start:vue": "cd ./demo/vue-test/ && npm run serve"
-  },
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TheSonOfThomp/Zed.git"
@@ -29,6 +22,18 @@
     "url": "https://github.com/TheSonOfThomp/Zed/issues"
   },
   "homepage": "https://github.com/TheSonOfThomp/Zed#readme",
+  "scripts": {
+    "build": "tsc && sass src/zed.scss lib/zed.css",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "publish": "npm run build && npm publish",
+    "watch": "nodemon",
+    "install:react": "cd ./demo/react-test/ && yarn",
+    "link:react": "yarn link && cd ./demo/react-test/ && yarn link zed-shadow",
+    "start:react": "cd ./demo/react-test/ && yarn start",
+    "install:vue": "cd ./demo/vue-test/ && npm i",
+    "link:vue": "npm link && cd ./demo/vue-test/ && npm link zed-shadow",
+    "start:vue": "cd ./demo/vue-test/ && npm run serve"
+  },
   "devDependencies": {
     "@types/node": "^12.12.42",
     "gulp": "^4.0.2",

@@ -1,5 +1,5 @@
-import ElevatedElement from "./ElevatedElement";
-import Intersection from "./Intersection";
+import {ElevatedElement} from "./ElevatedElement";
+import {Intersection} from "./Intersection";
 
 
 // Known issues
@@ -8,18 +8,21 @@ import Intersection from "./Intersection";
 //
 // - Odd behaviour when the distance between cards is less than the shadow spread (too much/too little shadow)
 
-class Zed {
-  private rootElement: Element;
+export default class Zed {
+  private rootElement: HTMLElement;
   private elevatedElements: Array<ElevatedElement>; // all elements with [zed] attributes
   private initialized:boolean = false;
 
   // how many pixels is one z-index level worth?
-  public ELEVATION_INCREMENT:number = 4;
+  public ELEVATION_INCREMENT: number = 4;
   
-  constructor(rootElement: Element | string){
+  constructor(rootElement: HTMLElement | string){
+
+    // some change
+    debugger
     // default to the document element if none is provided
     if (typeof rootElement === 'string') {
-      this.rootElement = (document.querySelector(rootElement) as Element)
+      this.rootElement = (document.querySelector(rootElement) as HTMLElement)
     } else {
       this.rootElement = rootElement || document.documentElement
     }
@@ -71,7 +74,7 @@ class Zed {
   /*
    * Returns the [zed] attribute of the provided HTML element
    */
-  protected getZed(elem: Element):number {
+  protected getZed(elem: HTMLElement):number {
     const _zed = elem.getAttribute('zed')
     if (!!_zed){
       return parseFloat(_zed)
@@ -80,26 +83,26 @@ class Zed {
     }
   }
 
-  protected getParentZed(elem: Element){
+  protected getParentZed(elem: HTMLElement){
     let _z = this.getZed(elem)
     if(_z > 0) {
       return _z
     } else {
-      return this.getParentZed((elem.parentElement as Element))
+      return this.getParentZed((elem.parentElement as HTMLElement))
     }
   }
 
   protected getElevatedElements(): Array<ElevatedElement>{
     const elements = this.rootElement.querySelectorAll('[zed]')
     return Array.prototype.slice.call(elements).map(e => {
-      return new ElevatedElement({
+      return {
         element: e,
         baseRect: this.cloneDOMRect(e.getBoundingClientRect()),
         z: this.getZed(e),
         intersections: [],
         baseShadowElement: this.createBaseShadowElement(e),
         overlappingShadows: [],
-      })
+      }
     });
   }
 
@@ -131,7 +134,7 @@ class Zed {
         const ixnRect_ij = this.getIntersectionRectOf(elElem, otherElElem);
         const zDiff = this.getZed(elem) - otherZ;
         if (ixnRect_ij.height > 0 && ixnRect_ij.width > 0) {
-          const ixnObject: Intersection = new Intersection({
+          const ixnObject: Intersection = {
             primaryElementRef: elElem,
             primaryElement: elem,
             intersectingElement: otherElem,
@@ -139,7 +142,7 @@ class Zed {
             intersectionRect: ixnRect_ij,
             zDiff: zDiff,
             shadowElement: zDiff > 0 ? this.createOverlappingShadowElement(elElem) : null,
-          })
+          }
           elElem.intersections.push(ixnObject)
         }
       }
@@ -147,12 +150,12 @@ class Zed {
     return elElem.intersections
   }
 
-  protected getElementIndex(elem: Element): number {
+  protected getElementIndex(elem: HTMLElement): number {
     const index = this.elevatedElements.findIndex(ee => ee.element === elem)
     return index
   }
 
-  protected createBaseShadowElement(elem: Element): Element {
+  protected createBaseShadowElement(elem: HTMLElement): HTMLElement {
     const baseShadowElem = document.createElement('div')
     baseShadowElem.classList.add('zed-shadow', 'base-shadow')
     elem.insertBefore(baseShadowElem, elem.firstChild)
@@ -161,12 +164,12 @@ class Zed {
 
   protected setBaseShadowStyle(elElem: ElevatedElement) {
     // Find or create main shadow element
-    const baseShadowElem: Element = elElem.baseShadowElement;
+    const baseShadowElem: HTMLElement = elElem.baseShadowElement;
     // this.replaceStyle(baseShadowElem, 'z-index', elElem.z.toString());
     this.replaceStyle(baseShadowElem, 'box-shadow', this.getCSSShadowValue(elElem.z))
   }
 
-  protected createOverlappingShadowElement(elElem: ElevatedElement): Element {
+  protected createOverlappingShadowElement(elElem: ElevatedElement): HTMLElement {
     const ovShadowElem = document.createElement('div')
     ovShadowElem.classList.add('zed-shadow', 'overlapping-shadow')
     elElem.element.insertBefore(ovShadowElem, elElem.element.firstChild)
@@ -212,7 +215,7 @@ class Zed {
   /*
    * Sets the [style] attribute of the provided HTML element
    */
-  protected setStyle(elem: Element, style:string){
+  protected setStyle(elem: HTMLElement, style:string){
     style = style
       .replace(/\n/, '')
       .split(';')
@@ -225,7 +228,7 @@ class Zed {
   /*
    * Appends to the [style] attribute of the provided HTML element
    */
-  protected appendStyle(elem: Element, style: string) {
+  protected appendStyle(elem: HTMLElement, style: string) {
     const currentStyle = elem.getAttribute('style');
     let newStyle: string;
     if (currentStyle) {
@@ -239,7 +242,7 @@ class Zed {
   /*
    * Replaces a rule in the [style] attribute of the provided HTML element
    */
-  protected replaceStyle(elem: Element, attribute: string, value:string){
+  protected replaceStyle(elem: HTMLElement, attribute: string, value:string){
     const currentStyle = elem.getAttribute('style')
 
     if (currentStyle && currentStyle.includes(attribute)) {
@@ -407,17 +410,17 @@ class Zed {
 }
 
 
-function zedFactory() {
-  return Zed
-}
+// function zedFactory() {
+//   return Zed
+// }
 
-declare var define:any;
-(
-  function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' 
-    ? module.exports = factory() 
-    : typeof define === 'function' && define.amd 
-      ? define(factory) 
-      : global.moment = factory()
-  }(this, zedFactory)
-);
+// declare var define:any;
+// (
+//   function (global, factory) {
+//     typeof exports === 'object' && typeof module !== 'undefined' 
+//     ? module.exports = factory() 
+//     : typeof define === 'function' && define.amd 
+//       ? define(factory) 
+//       : global.moment = factory()
+//   }(this, zedFactory)
+// );
