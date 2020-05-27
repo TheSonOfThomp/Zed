@@ -3,22 +3,10 @@
   "version": "0.0.2",
   "description": "Zed - The true elevation library",
   "main": "lib/zed.js",
-  "scripts": {
-    "build": "npm run build:ts && npm run build:sass",
-    "build:ts": "tsc src/zed.ts --outFile lib/zed.js",
-    "build:sass": "sass src/zed.scss lib/zed.css",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "publish": "npm run build && npm publish",
-    "watch": "npm run watch:ts && npm run watch:sass",
-    "watch:sass": "nodemon src/zed.scss -x 'npm run build:sass'",
-    "watch:ts": "nodemon src/zed.ts -x 'npm run build:ts'",
-    "install:react": "cd ./demo/react-test/ && yarn",
-    "link:react": "yarn link && cd ./demo/react-test/ && yarn link zed-shadow",
-    "start:react": "cd ./demo/react-test/ && yarn start",
-    "install:vue": "cd ./demo/vue-test/ && npm i",
-    "link:vue": "npm link && cd ./demo/vue-test/ && npm link zed-shadow",
-    "start:vue": "cd ./demo/vue-test/ && npm run serve"
-  },
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TheSonOfThomp/Zed.git"
@@ -34,9 +22,28 @@
     "url": "https://github.com/TheSonOfThomp/Zed/issues"
   },
   "homepage": "https://github.com/TheSonOfThomp/Zed#readme",
+  "scripts": {
+    "build": "tsc && sass src/zed.scss lib/zed.css",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "publish": "npm run build && npm publish",
+    "watch": "nodemon",
+    "install:react": "cd ./demo/react-test/ && yarn",
+    "link:react": "yarn link && cd ./demo/react-test/ && yarn link zed-shadow",
+    "start:react": "cd ./demo/react-test/ && yarn start",
+    "install:vue": "cd ./demo/vue-test/ && npm i",
+    "link:vue": "npm link && cd ./demo/vue-test/ && npm link zed-shadow",
+    "start:vue": "cd ./demo/vue-test/ && npm run serve"
+  },
   "devDependencies": {
-    "@types/node": "^12.7.12",
-    "sass": "^1.23.0",
-    "typescript": "^3.6.4"
-  }
+    "@types/node": "^12.12.42",
+    "gulp": "^4.0.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-minify": "^3.1.0",
+    "gulp-sass": "^4.1.0",
+    "gulp-typescript": "^5.0.1",
+    "nodemon": "^1.19.4",
+    "sass": "^1.26.5",
+    "typescript": "^3.9.3"
+  },
+  "dependencies": {}
 }

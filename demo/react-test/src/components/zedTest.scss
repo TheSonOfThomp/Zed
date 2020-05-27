@@ -1,26 +1,19 @@
 @import url('~zed-shadow/lib/zed.css');
 
-.card {
-  height: 250px;
-  width: 250px;
-  background-color: white;
-  border-radius: 16px;
-  position: relative;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  cursor: grab;
+#shadow-container {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 8px;
 }
-
-#card-1{
-  top: 50px;
-  left: 0px;
-}
-#card-2 {
-  top: 150px;
-  left: -75px;
-}
-#card-3 {
-  top: 0px;
-  left: -150px;
-}
+// #card-1{
+//   top: 50px;
+//   left: 0px;
+// }
+// #card-2 {
+//   top: 150px;
+//   left: -75px;
+// }
+// #card-3 {
+//   top: 0px;
+//   left: -150px;
+// }

@@ -1,43 +1,39 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import './zedTest.scss';
 import Zed from 'zed-shadow';
+import Card from './Card/Card';
+// import Dropdown from './Dropdown/Dropdown';
 
-class ZedTest extends React.Component {
+const ZedTest = () => {
+  const [z1, setZ1] = useState(24)
+  const [z2, setZ2] = useState(12)
+  const [z3, setZ3] = useState(16)
+  
+  useEffect(() => {
+    // eslint-disable-next-line
+    const Z = new Zed('#shadow-container');
+    console.log(Z)
+  }, [])
 
-  constructor(){
-    super();
-    this.card1 = {z: 9}
-    this.card2 = {z: 5}
-    this.card3 = {z: 7}
-  }
-
-  componentDidMount(){
-    this.Z = new Zed('#shadow-container')
-  }
-  
-  render(){
-    return (
-      <div id="shadow-container">
-        <div 
-          zed={this.card1.z}
-          id="card-1"
-          className="card"
-        >Card 1 (z={ this.card1.z })</div>
-  
-        <div 
-          zed={this.card2.z}
-          id="card-2"
-          className="card" 
-        > Card 2(z = { this.card2.z })</div>
-  
-        <div 
-          zed={this.card3.z}
-          id="card-3"
-          className="card" 
-        >Card 3(z = { this.card3.z })</div>
-    </div>
-    );
-  }
+  return (
+    <div id="shadow-container">
+      <Card 
+        id="card-1" 
+        zed={z1} 
+        setZ={setZ1}
+      />
+      <Card 
+        id="card-2" 
+        zed={z2} 
+        setZ={setZ2}
+      />
+      <Card 
+        id="card-3" 
+        zed={z3} 
+        setZ={setZ3}
+      />
+  </div>
+  );
 }
 
 export default ZedTest;

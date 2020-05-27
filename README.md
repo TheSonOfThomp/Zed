@@ -1,11 +1,11 @@
-# ZED
+![zed](./zed-logo.png)
 
-ZED stands for Z-Elevation based Drop-shadows. (It's also the correct way to pronounce the last letter in the alphabet 🇨🇦)
+ZED stands for Z-Elevation based Drop-shadows. But really, it's  the correct way to pronounce the first letter of z-index, and the last letter of the aplhabet 🇨🇦
 
-ZED creates more realistic-looking overlapping drop-shadows. The way drop-shadows are drawn by default in CSS doesn't take other elements into account. ZED draws shadows that get cast on other elevated elements, creating a more realistic effect.
+Zed creates more realistic-looking overlapping drop-shadows. The way drop-shadows are drawn by default in CSS doesn't take other elevated elements into account. Zed fixes this by casting shadows on these other elements, creating a more realistic shadow effect.
 
 ## Installation
-To install ZED, install it from NPM
+Install `zed-shadow` from NPM
 
 ```
 npm i zed-shadow
@@ -63,6 +63,10 @@ See the [demo](./demo) directory to see examples in some common frameworks.
 To develop Zed and test with one of the demo apps, first start watching the `src` directory:
 ```
 npm run watch
+
+// or
+
+gulp
 ```
 
 Then link that directory to the demo app(s) you want to use
