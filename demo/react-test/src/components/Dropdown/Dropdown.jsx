@@ -24,7 +24,7 @@ const Dropdown = (props) => {
         Click me
       </span>
       <DropdownMenu 
-        zRel={isMenuVisible ? 1 : 0}
+        zRel={isMenuVisible ? 5 : 0}
         options={props.options} 
         style={menuStyle}
       />

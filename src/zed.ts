@@ -18,8 +18,6 @@ export default class Zed {
   
   constructor(rootElement: HTMLElement | string){
 
-    // some change
-    debugger
     // default to the document element if none is provided
     if (typeof rootElement === 'string') {
       this.rootElement = (document.querySelector(rootElement) as HTMLElement)
@@ -62,7 +60,6 @@ export default class Zed {
     // console.log(this.elevatedElements)
     this.initialized = true;
   }
-
 
   protected updateZed(elElem: ElevatedElement, shouldUpdateIntersections: boolean = false) {
     elElem.z = this.getZed(elElem.element)
@@ -108,7 +105,7 @@ export default class Zed {
 
   protected drawShadows(elElem: ElevatedElement, shouldRecalculateIntersections: boolean = false) {
     // set the actual z-index css
-    this.replaceStyle(elElem.element, 'z-index', elElem.z.toString());
+    elElem.element.style.setProperty('z-index', elElem.z.toString())
 
     // Get all the intersections with other elevated elements
     let elementsIntersections: Array<Intersection> = shouldRecalculateIntersections 
@@ -119,7 +116,6 @@ export default class Zed {
 
     // Start adding the intersection shadows
     if (elementsIntersections.length > 0) {
-      this.updateIntersectionClipPathsForElement(elElem)
       this.drawOverlappingShadowsForElement(elElem)
     }
   }
@@ -166,7 +162,8 @@ export default class Zed {
     // Find or create main shadow element
     const baseShadowElem: HTMLElement = elElem.baseShadowElement;
     // this.replaceStyle(baseShadowElem, 'z-index', elElem.z.toString());
-    this.replaceStyle(baseShadowElem, 'box-shadow', this.getCSSShadowValue(elElem.z))
+    baseShadowElem.style.setProperty('box-shadow', this.getCSSShadowValue(elElem.z))
+
   }
 
   protected createOverlappingShadowElement(elElem: ElevatedElement): HTMLElement {
@@ -184,15 +181,6 @@ export default class Zed {
     })
   }
 
-  protected updateIntersectionClipPathsForElement(elElem: ElevatedElement) {
-    // Clip out the overlapping parts from the base element
-    this.replaceStyle(
-      elElem.baseShadowElement,
-      'clip-path',
-      `${this.getAllBaseClipPath(elElem.intersections.map(ixn => ixn.intersectionRect), elElem)}`
-    )
-  }
-
   protected drawOverlappingShadowForIntersection(ixn: Intersection):void {
     if (!ixn.shadowElement) { return } // short circuit
 
@@ -205,54 +193,9 @@ export default class Zed {
       const shadowVal = this.getCSSShadowValue(ixnZ)
       const clipPath = this.getClipPath(ixn.intersectionRect, elElemRef);
       
-      this.setStyle(thisIxnShadowElement, `
-        box-shadow: ${shadowVal};
-        clip-path: ${clipPath}
-      `)
+      thisIxnShadowElement.style.setProperty('box-shadow', shadowVal)
+      thisIxnShadowElement.style.setProperty('clip-path', clipPath)
     }  
-  }
-
-  /*
-   * Sets the [style] attribute of the provided HTML element
-   */
-  protected setStyle(elem: HTMLElement, style:string){
-    style = style
-      .replace(/\n/, '')
-      .split(';')
-      .filter(s => s.length > 1)
-      .join(';')
-      .trim();
-    elem.setAttribute('style', style)
-  }
-
-  /*
-   * Appends to the [style] attribute of the provided HTML element
-   */
-  protected appendStyle(elem: HTMLElement, style: string) {
-    const currentStyle = elem.getAttribute('style');
-    let newStyle: string;
-    if (currentStyle) {
-      newStyle = [currentStyle, style].join(';')
-    } else {
-      newStyle = style
-    }
-    elem.setAttribute('style', newStyle);
-  }
-
-  /*
-   * Replaces a rule in the [style] attribute of the provided HTML element
-   */
-  protected replaceStyle(elem: HTMLElement, attribute: string, value:string){
-    const currentStyle = elem.getAttribute('style')
-
-    if (currentStyle && currentStyle.includes(attribute)) {
-      const toReplace = `${attribute}:.*?(?=[;]).`
-      const toReplaceRegex = new RegExp(toReplace, 'g');
-      const newStyle = currentStyle.replace(toReplaceRegex, `${attribute}: ${value};`)
-      this.setStyle(elem, newStyle)
-    } else {
-      this.appendStyle(elem, `${attribute}: ${value}`);
-    }
   }
 
   /*
@@ -283,10 +226,10 @@ export default class Zed {
    */
   protected getCSSShadowValue(z:number):string {
     z = z <= 0 ? 0.5 : z
-    let elevation = this.ELEVATION_INCREMENT * z
-    let blur = 1.2 * elevation;
-    let spread = -0.5 * elevation;
-    return `0px ${elevation}px ${blur}px ${spread}px rgba(0, 0, 0, 0.18);`
+    let elevation = Math.round(this.ELEVATION_INCREMENT * z);
+    let blur = Math.round(1.2 * elevation);
+    let spread = Math.round(-0.5 * elevation);
+    return `rgba(0, 0, 0, 0.18) 0px ${elevation}px ${blur}px ${spread}px`
   }
 
   /*

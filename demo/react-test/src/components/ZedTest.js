@@ -1,22 +1,18 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import './zedTest.scss';
-import Zed from 'zed-shadow';
 import Card from './Card/Card';
+import {useZed} from '../hooks/useZed'
 // import Dropdown from './Dropdown/Dropdown';
 
 const ZedTest = () => {
   const [z1, setZ1] = useState(24)
-  const [z2, setZ2] = useState(12)
+  const [z2, setZ2] = useState(6)
   const [z3, setZ3] = useState(16)
   
-  useEffect(() => {
-    // eslint-disable-next-line
-    const Z = new Zed('#shadow-container');
-    console.log(Z)
-  }, [])
+  const {ref} = useZed()
 
   return (
-    <div id="shadow-container">
+    <div id="shadow-container" ref={ref}>
       <Card 
         id="card-1" 
         zed={z1} 
