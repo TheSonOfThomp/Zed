@@ -6,3 +6,4 @@ package/
 .vscode
 src/*.js
 src/*.css
+*.sketch
