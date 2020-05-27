@@ -7,8 +7,8 @@ const Card = (props) => (
     id={props.id}
     className="card"
     zed={props.zed}
-    onMouseDown={() => props.setZ(props.zed + 1)}
-    onMouseUp={() => props.setZ(props.zed - 1)}
+    onMouseDown={() => props.setZ(props.zed * 2)}
+    onMouseUp={() => props.setZ(props.zed / 2)}
   >
     Z =  {props.zed}
     <Dropdown />

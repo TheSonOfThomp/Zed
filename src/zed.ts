@@ -1,6 +1,10 @@
-import {ElevatedElement} from "./ElevatedElement";
+import {ElevatedElement, ElementTree} from "./ElevatedElement";
 import {Intersection} from "./Intersection";
+import { hash, getElementArray } from "./utils";
 
+const attributes = [
+  'zed',
+]
 
 // Known issues
 // - Does not deal well with more than 2 layers of overlap
@@ -10,11 +14,10 @@ import {Intersection} from "./Intersection";
 
 export default class Zed {
   private rootElement: HTMLElement;
-  private elevatedElements: Array<ElevatedElement>; // all elements with [zed] attributes
-  private initialized:boolean = false;
+  private elementTree: ElementTree;
 
   // how many pixels is one z-index level worth?
-  public ELEVATION_INCREMENT: number = 4;
+  public ELEVATION_INCREMENT: number = 1;
   
   constructor(rootElement: HTMLElement | string){
 
@@ -26,8 +29,11 @@ export default class Zed {
     } else {
       this.rootElement = rootElement || document.documentElement
     }
-    this.elevatedElements = []
-    this.init()
+    // this.elevatedElementsList = []
+    this.elementTree = this.getElementTree(this.rootElement)
+    // this.init()
+    this.initTree(this.elementTree)
+    console.log(this.elementTree)
   }
 
   public setElevationIncrement(newIncrement: number) {
@@ -36,74 +42,151 @@ export default class Zed {
   }
 
   public update() {
-    this.init(this.elevatedElements)
+    // this.init(this.elevatedElementsList)
+    this.elementTree = this.getElementTree(this.rootElement)
+    this.initTree(this.elementTree)
   }
-  
-  init(elevatedElements?:Array<ElevatedElement>){
 
-    // Find relatively elevated elements
-    const relativeElements = this.rootElement.querySelectorAll('[zed-rel]')
+  private get elevatedElementsList(): Array<ElevatedElement> {
+    const elelems: Array<ElevatedElement> = []
+    const flattenElements = (node: ElevatedElement) => {
+      elelems.push(node)
+      node.children.forEach(child => flattenElements(child))
+    }
+    this.elementTree.children.forEach(child => flattenElements(child))
+    return elelems
+  }
 
-    Array.prototype.slice.call(relativeElements).forEach(elem => {
-      const parentZ = this.getParentZed(elem)
-      const absZ = parentZ + parseInt(elem.getAttribute('zed-rel'))
-      elem.setAttribute('zed', absZ)
-    })
+  // protected init(elevatedElements?: Array<ElevatedElement>) {
+  //   // Iterate over all the elevated elements
+  //   this.elevatedElementsList.forEach((elElem) => {
+  //     elElem.element.classList.add('zed-element')
+  //     this.drawShadows(elElem, true)
+  //     this.addMutationObserver(elElem) // watch for changes in [zed]
+  //   })
+  // }
 
-    // Get all the elevated elements on the page
-    this.elevatedElements = elevatedElements || this.getElevatedElements()
+  protected initTree(treeRoot: ElementTree) {
+    treeRoot = treeRoot || this.getElementTree(this.rootElement)
+    treeRoot.element.classList.add('zed-element')
 
-    // Iterate over all the elevated elements
-    this.elevatedElements.forEach((elElem) => {
-      elElem.element.classList.add('zed-element')
+    const initTreeNodes = (elElem: ElevatedElement) => {
       this.drawShadows(elElem, true)
-      this.addMutationObserver(elElem) // watch for changes in [zed]
-    })
-    // console.log(this.elevatedElements)
-    this.initialized = true;
+      this.addMutationObserver(elElem)
+      for (let node of elElem.children) {
+        initTreeNodes(node)
+      }
+    }
+
+    for (let node of treeRoot.children) {
+      initTreeNodes(node)
+    }
   }
 
+  protected getElementTree(rootNode: HTMLElement): ElementTree {
+    const root: ElementTree = {
+      element: rootNode,
+      children: []
+    }
+
+    const recurseDOMTree = (currentNode: HTMLElement, prevElement?: ElevatedElement) => {
+      const children = currentNode.childNodes
+      if (children.length) {
+        for (let child of getElementArray(children)) {
+          if (child.getAttributeNames && child.getAttributeNames().includes('zed')) {
+            const newNode = this.createElevatedElementFrom(child, prevElement)
+            if(!!prevElement) {
+              prevElement?.children.push(newNode)
+            } else {
+              root.children.push(newNode)
+            }
+            recurseDOMTree(child, newNode)
+          } else {
+            recurseDOMTree(child, prevElement)
+          }
+        }
+      }
+      return prevElement
+    }
+    recurseDOMTree(rootNode)
+    return root
+  }
+
+  // protected setZedFromRelative(elem: HTMLElement):void {
+  //   const parentZ = this.getParentZed(elem)
+  //   const absZ = parentZ + parseInt(elem.getAttribute('zed-rel') || '0')
+  //   elem.setAttribute('zed', absZ.toString())
+  // }
 
   protected updateZed(elElem: ElevatedElement, shouldUpdateIntersections: boolean = false) {
-    elElem.z = this.getZed(elElem.element)
+    console.log(`Updating ${elElem.element.id}`)
+    elElem.z = this.getZed(elElem)
     // Update shadows
     // TODO update the intersecting component as well when updating Intersections
     this.drawShadows(elElem, shouldUpdateIntersections)
+
+    for (let ixn of elElem.intersections) {
+      if (ixn.zDiff > 0 ){
+        // this.setZedFromRelative(ixn.intersectingElement.element)
+        this.updateZed(ixn.intersectingElement, shouldUpdateIntersections)
+      }
+    }
   }
 
   /*
    * Returns the [zed] attribute of the provided HTML element
    */
-  protected getZed(elem: HTMLElement):number {
+  protected getZedAttr(elem: HTMLElement):number {
     const _zed = elem.getAttribute('zed')
     if (!!_zed){
       return parseFloat(_zed)
     } else {
-      return -1
+      return 0
     }
   }
 
-  protected getParentZed(elem: HTMLElement){
-    let _z = this.getZed(elem)
-    if(_z > 0) {
-      return _z
+  /**
+   * Returns the absolute elevation of an elevated element
+   */
+  protected getZed(elElem: ElevatedElement): number {
+    if (elElem.parent) {
+      return this.getZed(elElem.parent) + elElem.z
     } else {
-      return this.getParentZed((elem.parentElement as HTMLElement))
+      return elElem.z
     }
   }
 
-  protected getElevatedElements(): Array<ElevatedElement>{
+  /**
+   * returns the absolute elevation of an HTML element
+   */
+  protected getZedForElement(elem: HTMLElement, parent?: ElevatedElement): number {
+    if (parent) {
+      return this.getZed(parent) + this.getZedAttr(elem)
+    } else {
+      return this.getZedAttr(elem)
+    }
+  }
+
+  protected getElevatedElements(): Array<ElevatedElement> {
     const elements = this.rootElement.querySelectorAll('[zed]')
-    return Array.prototype.slice.call(elements).map(e => {
-      return {
-        element: e,
-        baseRect: this.cloneDOMRect(e.getBoundingClientRect()),
-        z: this.getZed(e),
-        intersections: [],
-        baseShadowElement: this.createBaseShadowElement(e),
-        overlappingShadows: [],
-      }
+    return getElementArray(elements).map(e => {
+      return this.createElevatedElementFrom(e)
     });
+  }
+
+  createElevatedElementFrom(el: HTMLElement, parent?: ElevatedElement): ElevatedElement {
+    return {
+      id: hash(el.innerHTML),
+      children: [],
+      parent: parent || null,
+      element: el,
+      baseRect: this.cloneDOMRect(el.getBoundingClientRect()),
+      baseShadowElement: this.createBaseShadowElement(el),
+      intersections: [],
+      overlappingShadows: [],
+      z: this.getZedForElement(el, parent),
+      zRel: this.getZedAttr(el)
+    }
   }
 
   protected drawShadows(elElem: ElevatedElement, shouldRecalculateIntersections: boolean = false) {
@@ -127,18 +210,17 @@ export default class Zed {
   protected getIntersectionsForElement(elElem:ElevatedElement) {
     const elem = elElem.element
 
-    this.elevatedElements.forEach((otherElElem:ElevatedElement, j) => {
+    this.elevatedElementsList.forEach((otherElElem:ElevatedElement, j) => {
       const otherElem = otherElElem.element
       if (otherElem !== elem) {
-        const otherZ = this.getZed(otherElem) //otherElem.getAttribute('z-index')
+        const otherZ = this.getZedAttr(otherElem) //otherElem.getAttribute('z-index')
         const ixnRect_ij = this.getIntersectionRectOf(elElem, otherElElem);
-        const zDiff = this.getZed(elem) - otherZ;
+        const zDiff = this.getZedAttr(elem) - otherZ;
         if (ixnRect_ij.height > 0 && ixnRect_ij.width > 0) {
           const ixnObject: Intersection = {
-            primaryElementRef: elElem,
-            primaryElement: elem,
-            intersectingElement: otherElem,
-            intersectingElementRef: otherElElem,
+            id: hash(elElem.element.id + otherElElem.id),
+            primaryElement: elElem,
+            intersectingElement: otherElElem,
             intersectionRect: ixnRect_ij,
             zDiff: zDiff,
             shadowElement: zDiff > 0 ? this.createOverlappingShadowElement(elElem) : null,
@@ -150,10 +232,10 @@ export default class Zed {
     return elElem.intersections
   }
 
-  protected getElementIndex(elem: HTMLElement): number {
-    const index = this.elevatedElements.findIndex(ee => ee.element === elem)
-    return index
-  }
+  // protected getElementIndex(elem: HTMLElement): number {
+  //   const index = this.elevatedElementsList.findIndex(ee => ee.element === elem)
+  //   return index
+  // }
 
   protected createBaseShadowElement(elem: HTMLElement): HTMLElement {
     const baseShadowElem = document.createElement('div')
@@ -198,7 +280,7 @@ export default class Zed {
 
     const zDiff = ixn.zDiff;
     const thisIxnShadowElement = ixn.shadowElement;
-    const elElemRef = ixn.primaryElementRef
+    const elElemRef = ixn.primaryElement
 
     const ixnZ = Math.abs(ixn.zDiff);
     if (zDiff >= 0) {
@@ -282,11 +364,11 @@ export default class Zed {
    * Returns the CSS shadow rule given a z-position
    */
   protected getCSSShadowValue(z:number):string {
-    z = z <= 0 ? 0.5 : z
-    let elevation = this.ELEVATION_INCREMENT * z
-    let blur = 1.2 * elevation;
-    let spread = -0.5 * elevation;
-    return `0px ${elevation}px ${blur}px ${spread}px rgba(0, 0, 0, 0.18);`
+    if (z === 0) return ''
+    let elevation = Math.round(this.ELEVATION_INCREMENT * z);
+    let blur = Math.round(1.2 * elevation);
+    let spread = Math.round(-0.5 * elevation);
+    return `rgba(0, 0, 0, 0.18) 0px ${elevation}px ${blur}px ${spread}px`
   }
 
   /*
@@ -408,19 +490,3 @@ export default class Zed {
     ZedObserver.observe(elevatedElem.element, { attributes: true, childList: false, subtree: false })
   }
 }
-
-
-// function zedFactory() {
-//   return Zed
-// }
-
-// declare var define:any;
-// (
-//   function (global, factory) {
-//     typeof exports === 'object' && typeof module !== 'undefined' 
-//     ? module.exports = factory() 
-//     : typeof define === 'function' && define.amd 
-//       ? define(factory) 
-//       : global.moment = factory()
-//   }(this, zedFactory)
-// );
