@@ -1,5 +1,6 @@
-import { Intersection, updateZDiff } from "./Intersection";
-import { hash, getZedAttr } from "./utils";
+import md5 from 'js-md5'
+import { Intersection, updateZDiff, IntersectionSet } from "./Intersection";
+import { getZedAttr } from "./utils";
 import { cloneDOMRect } from "./geometry";
 
 export type ElementTree = {
@@ -13,14 +14,14 @@ export class ElevatedElement {
   parent: ElevatedElement | null;
   element: HTMLElement;
   baseRect: DOMRect;
-  intersections: Array<Intersection>;
+  intersections: Array<string>;
   baseShadowElement: HTMLElement;
   overlappingShadows: Array<HTMLElement>;
   private _z: number = 0;
   zRel: number;
 
   constructor(element: HTMLElement, parent?: ElevatedElement) {
-    this.id = hash(element.innerHTML);
+    this.id = md5(element.tagName + element.id + element.outerHTML);
     this.children = [];
     this.parent = parent || null;
     this.element = element;

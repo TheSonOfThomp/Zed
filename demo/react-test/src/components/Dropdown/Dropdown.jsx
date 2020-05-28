@@ -3,7 +3,7 @@ import './Dropdown.scss'
 import DropdownMenu from '../DropdownMenu/DropdownMenu';
 
 const Dropdown = (props) => {
-  const [isMenuVisible, setIsMenuVisible] = useState(true)
+  const [isMenuVisible, setIsMenuVisible] = useState(false)
   const [menuStyle, setMenuStyle] = useState({})
   const buttonRef = useRef()
   

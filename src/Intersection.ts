@@ -9,6 +9,10 @@ export type Intersection = {
   zDiff: number; // +ve zDiff means element1 is higher
 }
 
+export type IntersectionSet = {
+  [key: string]: Intersection
+}
+
 export function updateZDiff(ixn: Intersection):Intersection {
   ixn.zDiff = ixn.primaryElement.z - ixn.intersectingElement.z
   return ixn

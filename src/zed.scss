@@ -14,9 +14,11 @@
     right: 0;
     transition: cubic-bezier(0.075, 0.82, 0.165, 1) box-shadow 500ms;
     // background-color: rgba(0, 0, 255, 0.1);
+    pointer-events: none;
   }
   
   .overlapping-shadow {
     background-color: rgba(255, 0, 0, 0.1);
+    pointer-events: none;
   }
 }

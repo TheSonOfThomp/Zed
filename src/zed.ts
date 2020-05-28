@@ -1,6 +1,7 @@
+import md5 from 'js-md5'
 import {ElevatedElement, ElementTree} from "./ElevatedElement";
-import {Intersection} from "./Intersection";
-import { hash, getElementArray, getZedAttr } from "./utils";
+import {Intersection, IntersectionSet} from "./Intersection";
+import { getElementArray, getZedAttr } from "./utils";
 import { cloneDOMRect, calcPath, getSharedEdges, getCSSShadowValue } from "./geometry";
 
 
@@ -17,6 +18,7 @@ const attributes = [
 export default class Zed {
   private rootElement: HTMLElement;
   private elementTree: ElementTree;
+  private intersections: IntersectionSet = {};
 
   // how many pixels is one z-index level worth?
   public ELEVATION_INCREMENT: number = 1;
@@ -28,9 +30,8 @@ export default class Zed {
     } else {
       this.rootElement = rootElement || document.documentElement
     }
-    // this.elevatedElementsList = []
     this.elementTree = this.getElementTree(this.rootElement)
-    // this.init()
+
     this.initTree(this.elementTree)
     console.log(this.elementTree)
   }
@@ -76,7 +77,7 @@ export default class Zed {
   protected initTree(treeRoot: ElementTree) {
     treeRoot = treeRoot || this.getElementTree(this.rootElement)
     treeRoot.element.classList.add('zed-element')
-    this.updateTreeFrom(treeRoot)
+    this.updateTreeFrom(treeRoot, true)
   }
 
   protected getElementTree(rootNode: HTMLElement): ElementTree {
@@ -109,12 +110,18 @@ export default class Zed {
   }
 
   protected drawShadows(elElem: ElevatedElement, shouldRecalculateIntersections: boolean = false) {
+    this.setBaseShadowStyle(elElem)
+    
     // Get all the intersections with other elevated elements
-    let elementsIntersections: Array<Intersection> = shouldRecalculateIntersections 
+    if (shouldRecalculateIntersections) {
+      this.intersections = {}
+    }
+
+    const ixnIds: Array<string> = shouldRecalculateIntersections 
       ? this.getIntersectionsForElement(elElem) 
       : elElem.intersections
 
-    this.setBaseShadowStyle(elElem)
+    const elementsIntersections: Array<Intersection> = ixnIds.map(id => this.intersections[id])
 
     // Start adding the intersection shadows
     if (elementsIntersections.length > 0) {
@@ -126,25 +133,28 @@ export default class Zed {
   protected getIntersectionsForElement(elElem:ElevatedElement) {
     const elem = elElem.element
 
-    this.elevatedElementsList.forEach((otherElElem:ElevatedElement, j) => {
-      const otherElem = otherElElem.element
-      if (otherElem !== elem) {
-        const otherZ = getZedAttr(otherElem) //otherElem.getAttribute('z-index')
-        const ixnRect_ij = this.getIntersectionRectOf(elElem, otherElElem);
-        const zDiff = getZedAttr(elem) - otherZ;
+    for (let otherElevatedElem of this.elevatedElementsList) {
+      const otherElem = otherElevatedElem.element
+      if (otherElem !== elem && elElem.id !== otherElevatedElem.id) {
+        const ixnRect_ij = this.getIntersectionRectOf(elElem, otherElevatedElem);
         if (ixnRect_ij.height > 0 && ixnRect_ij.width > 0) {
-          const ixnObject: Intersection = {
-            id: hash(elElem.element.id + otherElElem.id),
-            primaryElement: elElem,
-            intersectingElement: otherElElem,
-            intersectionRect: ixnRect_ij,
-            zDiff: zDiff,
-            shadowElement: zDiff > 0 ? this.createOverlappingShadowElement(elElem) : null,
+          const ixn_id = md5(elElem.id + otherElevatedElem.id)
+          const zDiff = elElem.z - otherElevatedElem.z;
+
+          if(!this.intersections[ixn_id]) {
+            this.intersections[ixn_id] = {
+              id: ixn_id,
+              primaryElement: elElem,
+              intersectingElement: otherElevatedElem,
+              intersectionRect: ixnRect_ij,
+              zDiff: zDiff,
+              shadowElement: zDiff > 0 ? this.createOverlappingShadowElement(elElem) : null,
+            }
+            elElem.intersections.push(ixn_id)
           }
-          elElem.intersections.push(ixnObject)
         }
       }
-    })
+    }
     return elElem.intersections
   }
 
@@ -164,14 +174,18 @@ export default class Zed {
 
   protected drawOverlappingShadowsForElement(elElem: ElevatedElement) {
     // Loop all valid for this element
-    elElem.intersections.forEach((ixn) => {
+    for (let id of elElem.intersections) {
+      const ixn = this.intersections[id]
       this.drawOverlappingShadowForIntersection(ixn)
-    })
+    }
   }
 
   protected updateIntersectionClipPathsForElement(elElem: ElevatedElement) {
     // Clip out the overlapping parts from the base element
-    elElem.baseShadowElement.style.setProperty('clip-path', this.getAllBaseClipPath(elElem.intersections.map(ixn => ixn.intersectionRect), elElem))
+    const clipPath = this.getAllBaseClipPath(
+      elElem.intersections.map(id => this.intersections[id].intersectionRect), elElem
+    )
+    elElem.baseShadowElement.style.setProperty('clip-path', clipPath) 
   }
 
   protected drawOverlappingShadowForIntersection(ixn: Intersection):void {
