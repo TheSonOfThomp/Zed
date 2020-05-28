@@ -27,6 +27,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "publish": "npm run build && npm publish",
     "watch": "nodemon",
+    "react": "yarn install:react && yarn link:react && yarn start:react",
     "install:react": "cd ./demo/react-test/ && yarn",
     "link:react": "yarn link && cd ./demo/react-test/ && yarn link zed-shadow",
     "start:react": "cd ./demo/react-test/ && yarn start",

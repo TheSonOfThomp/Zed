@@ -1,27 +1,78 @@
 import { Intersection, updateZDiff } from "./Intersection";
+import { hash, getZedAttr } from "./utils";
+import { cloneDOMRect } from "./geometry";
 
 export type ElementTree = {
   element: HTMLElement,
   children: Array<ElevatedElement>
 }
 
-export type ElevatedElement = {
-  id: string,
-  children: Array<ElevatedElement>,
-  parent: ElevatedElement | null, 
+export class ElevatedElement {
+  id: string;
+  children: Array<ElevatedElement>;
+  parent: ElevatedElement | null;
   element: HTMLElement;
   baseRect: DOMRect;
-  intersections: Array<Intersection>
+  intersections: Array<Intersection>;
   baseShadowElement: HTMLElement;
   overlappingShadows: Array<HTMLElement>;
-  z: number;
+  private _z: number = 0;
   zRel: number;
-}
 
-export function setElementZ(elElem: ElevatedElement, newZ: number): ElevatedElement {
-  elElem.z = newZ
-  for (let ixn of elElem.intersections) {
-    ixn = updateZDiff(ixn)
+  constructor(element: HTMLElement, parent?: ElevatedElement) {
+    this.id = hash(element.innerHTML);
+    this.children = [];
+    this.parent = parent || null;
+    this.element = element;
+    this.baseRect = cloneDOMRect(element.getBoundingClientRect());
+    this.baseShadowElement = this.createBaseShadowElement(element);
+    this.intersections = [];
+    this.overlappingShadows = [];
+    this.z = this.getZedForElement(element, parent);
+    this.zRel = getZedAttr(element);
   }
-  return elElem
+
+  get z():number {
+    return this._z
+  }
+  set z(newZ:number) {
+    this._z = newZ
+    this.element.style.setProperty('z-index', this.z.toString())
+  }
+
+  /**
+   * Returns the absolute elevation of an elevated element
+   */
+  public getZed(elElem: ElevatedElement = this): number {
+    if (elElem.parent) {
+      return elElem.parent.z + getZedAttr(this.element)
+    } else {
+      return getZedAttr(this.element)
+    }
+  }
+  /**
+   * returns the absolute elevation of an HTML element
+   */
+  public getZedForElement(elem: HTMLElement, parent?: ElevatedElement): number {
+    if (parent) {
+      return parent.z + getZedAttr(elem)
+    } else {
+      return getZedAttr(elem)
+    }
+  }
+
+  public updateZed() {
+    this.z = this.getZed()
+  }
+
+  /**
+   * Creates a DOM element
+   */
+  private createBaseShadowElement(elem: HTMLElement): HTMLElement {
+    const baseShadowElem = document.createElement('div')
+    baseShadowElem.classList.add('zed-shadow', 'base-shadow')
+    elem.insertBefore(baseShadowElem, elem.firstChild)
+    return baseShadowElem
+  }
+  
 }
