@@ -1,21 +1,18 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState, forwardRef} from 'react';
 import './Dropdown.scss'
-import DropdownMenu from '../DropdownMenu/DropdownMenu';
 
-const Dropdown = (props) => {
-  const [isMenuVisible, setIsMenuVisible] = useState(false)
+const Dropdown = forwardRef((props, ref) => {
   const [menuStyle, setMenuStyle] = useState({})
   const buttonRef = useRef()
   
   useEffect(() => {
     setMenuStyle({
-      display: isMenuVisible ? 'block' : 'none',
       width: `${buttonRef.current.offsetWidth}px`,
     })
-  }, [buttonRef, isMenuVisible])
+  }, [buttonRef, props.isOpen])
 
   const handleClick = () => {
-    setIsMenuVisible(!isMenuVisible)
+    props.toggle()
   }
 
   return (
@@ -23,14 +20,23 @@ const Dropdown = (props) => {
       <span ref={buttonRef} onClick={() => handleClick()}>
         Click me
       </span>
-      <DropdownMenu 
-        zed={isMenuVisible ? 3 : 0}
-        options={props.options} 
-        style={menuStyle}
-      />
+      { props.isOpen && (
+        <ul 
+          ref={ref}
+          id="dropdown-menu" 
+          zed={props.isOpen ? 3 : 0} 
+          style={menuStyle}
+        >
+          {props.options.map(opt => {
+            return (
+              <li key={opt}>{opt}</li>
+            )
+          })}
+        </ul>
+      )}
     </div>
   )
-};
+});
 
 Dropdown.propTypes = {
   // bla: PropTypes.string,

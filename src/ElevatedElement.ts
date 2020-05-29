@@ -1,12 +1,12 @@
 import md5 from 'js-md5'
 import { Intersection, updateZDiff, IntersectionSet } from "./Intersection";
-import { getZedAttr } from "./utils";
+import { getZedAttr, getElementArray } from "./utils";
 import { cloneDOMRect } from "./geometry";
 
-export type ElementTree = {
-  element: HTMLElement,
-  children: Array<ElevatedElement>
-}
+// export type ElementTree = {
+//   element: HTMLElement,
+//   children: Array<ElevatedElement>
+// }
 
 export class ElevatedElement {
   id: string;
@@ -18,19 +18,23 @@ export class ElevatedElement {
   baseShadowElement: HTMLElement;
   overlappingShadows: Array<HTMLElement>;
   private _z: number = 0;
-  zRel: number;
 
   constructor(element: HTMLElement, parent?: ElevatedElement) {
+    const oldShadows = element.querySelectorAll('.overlapping-shadow')
+    if (oldShadows.length) {
+      for (let oldShadow of getElementArray(oldShadows)) {
+        oldShadow.remove()
+      }
+    }
     this.id = md5(element.tagName + element.id + element.outerHTML);
     this.children = [];
     this.parent = parent || null;
     this.element = element;
     this.baseRect = cloneDOMRect(element.getBoundingClientRect());
-    this.baseShadowElement = this.createBaseShadowElement(element);
+    this.baseShadowElement = element.querySelector(`.base-shadow`) || this.createBaseShadowElement(element, this.id);
     this.intersections = [];
     this.overlappingShadows = [];
     this.z = this.getZedForElement(element, parent);
-    this.zRel = getZedAttr(element);
   }
 
   get z():number {
@@ -39,6 +43,10 @@ export class ElevatedElement {
   set z(newZ:number) {
     this._z = newZ
     this.element.style.setProperty('z-index', this.z.toString())
+  }
+
+  get zRel():number {
+    return getZedAttr(this.element)
   }
 
   /**
@@ -69,9 +77,10 @@ export class ElevatedElement {
   /**
    * Creates a DOM element
    */
-  private createBaseShadowElement(elem: HTMLElement): HTMLElement {
+  private createBaseShadowElement(elem: HTMLElement, id: string): HTMLElement {
     const baseShadowElem = document.createElement('div')
     baseShadowElem.classList.add('zed-shadow', 'base-shadow')
+    baseShadowElem.id = `base-${id}`
     elem.insertBefore(baseShadowElem, elem.firstChild)
     return baseShadowElem
   }
