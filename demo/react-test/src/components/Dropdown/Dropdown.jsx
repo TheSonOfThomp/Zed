@@ -18,7 +18,7 @@ const Dropdown = forwardRef((props, ref) => {
   return (
     <div className="dropdown-wrapper">
       <span ref={buttonRef} onClick={() => handleClick()}>
-        Click me
+        Open menu
       </span>
       { props.isOpen && (
         <ul 

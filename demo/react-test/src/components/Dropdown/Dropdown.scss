@@ -17,6 +17,8 @@ ul#dropdown-menu {
   background-color: white;
   margin: 8px auto;
   padding: 0 8px;
+  transform-origin: 50% 0%;
+  // animation: open-menu 200ms ease;
   li {
     list-style-type: none;
     height: 32px;
@@ -26,5 +28,14 @@ ul#dropdown-menu {
     &:hover{
       background-color: whitesmoke;
     }
+  }
+}
+
+@keyframes open-menu {
+  from {
+    transform: scaleY(0.1)
+  }
+  to {
+    transform: scaleY(1);
   }
 }

@@ -7,12 +7,6 @@ import { Zed } from '../zed-react/zedContext';
 
 const ZedTest = () => {
 
-  // const {ref, Z} = useZed()
-
-  // useEffect(() => {
-  //   console.log(Z.current)
-  // }, [Z])
-
   return (
     <Zed>
       <div id="demo-container">
