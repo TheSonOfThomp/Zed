@@ -1,6 +1,6 @@
 ![zed](./zed-logo.png)
 
-ZED stands for Z-Elevation based Drop-shadows. But really, it's  the correct way to pronounce the first letter of z-index, and the last letter of the aplhabet 🇨🇦
+ZED stands for Z-Elevation based Drop-shadows. But really, it's  the correct way to pronounce the first letter of z-index, and the last letter of the alphabet 🇨🇦
 
 Zed creates more realistic-looking overlapping drop-shadows. The way drop-shadows are drawn by default in CSS doesn't take other elevated elements into account. Zed fixes this by casting shadows on these other elements, creating a more realistic shadow effect.
 
